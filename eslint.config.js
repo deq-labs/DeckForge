@@ -39,6 +39,11 @@ export default tseslint.config(
     },
   },
   {
+    // The marketing site's scripts run in the browser.
+    files: ['site/*.js'],
+    languageOptions: { globals: { window: 'readonly', document: 'readonly', FormData: 'readonly', fetch: 'readonly', encodeURIComponent: 'readonly' } },
+  },
+  {
     // Plain-JS build scripts run on Node.
     files: ['**/*.mjs', '**/*.cjs'],
     languageOptions: { globals: { process: 'readonly', console: 'readonly', Buffer: 'readonly', __dirname: 'readonly' } },
