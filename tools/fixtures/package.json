@@ -1,0 +1,17 @@
+{
+  "name": "@deckforge/fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Dev tools: synthetic fixture templates and the output smoke test.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "generate": "node src/generate.ts",
+    "smoke": "node src/smoke.ts"
+  },
+  "dependencies": {
+    "@deckforge/pptx-engine": "workspace:*",
+    "pptxgenjs": "^4.0.1"
+  }
+}

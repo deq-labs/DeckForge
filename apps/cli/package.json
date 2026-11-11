@@ -1,0 +1,19 @@
+{
+  "name": "@deckforge/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DeckForge command line: init-data, fill, batch.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "bin": {
+    "deckforge": "./src/main.ts"
+  },
+  "dependencies": {
+    "@deckforge/data-xlsx": "workspace:*",
+    "@deckforge/pptx-engine": "workspace:*",
+    "commander": "^15.1.0"
+  }
+}
