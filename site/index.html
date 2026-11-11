@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeckForge: automate your monthly PowerPoint report from Excel</title>
+  <meta name="description" content="DeckForge fills your own PowerPoint template with data from Excel: native charts and tables, one deck or one per plant or client. Runs on your computer; nothing is uploaded.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="./"><span>◆</span> DeckForge</a>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#packs">Templates</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <h1>Your PowerPoint report, rebuilt from Excel in one click.</h1>
+          <p class="lead">
+            DeckForge fills <strong>your own template</strong> with this month's numbers: real
+            PowerPoint charts and tables you can still edit, one deck or one per plant or client.
+            It runs on your computer. Nothing is uploaded.
+          </p>
+          <div class="cta">
+            <a class="btn primary" data-link="checkoutPreorder" data-fallback="Get early access" href="#signup">Pre-order at launch price</a>
+            <a class="btn" href="#how">See how it works</a>
+          </div>
+          <p class="small">Windows and Mac · one-time license · 30-day refund</p>
+        </div>
+        <div class="shot"><img src="assets/ops-kpis.png" alt="A monthly operations review slide with OEE, output, scrap and downtime tiles, filled by DeckForge" width="1280" height="720"></div>
+      </div>
+    </section>
+
+    <section class="alt" id="demo">
+      <div class="wrap">
+        <h2>Excel in, branded decks out</h2>
+        <p class="sub">Two minutes: a monthly ops review, then twenty client reports from one workbook.</p>
+        <div class="shot" id="demo-video"><img src="assets/ops-chart.png" alt="A column chart of planned and unplanned downtime by line, generated as a native PowerPoint chart" width="1280" height="720" loading="lazy"></div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p class="sub">You keep designing in PowerPoint. DeckForge only replaces what you mark.</p>
+        <div class="steps">
+          <div class="card">
+            <div class="num">1</div>
+            <h3>Tag your deck</h3>
+            <p>Type <code>{{oee}}</code> where a number goes. Name a table or chart in PowerPoint's Selection Pane. Your fonts, colors and layout stay.</p>
+          </div>
+          <div class="card">
+            <div class="num">2</div>
+            <h3>Fill the workbook</h3>
+            <p>DeckForge creates a workbook laid out for your template. Paste your export or type the numbers; Excel formats carry over.</p>
+          </div>
+          <div class="card">
+            <div class="num">3</div>
+            <h3>Generate</h3>
+            <p>One click makes the deck. Add a <code>batch</code> column and you get one deck per plant, region or client.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt">
+      <div class="wrap">
+        <h2>Built for the deck you rebuild every month</h2>
+        <div class="cards">
+          <div class="card"><h3>Native and editable</h3><p>Real PowerPoint charts with their data inside. Right-click, Edit Data, and the numbers are there. Tables grow and shrink to fit.</p></div>
+          <div class="card"><h3>Batch decks</h3><p>One workbook makes a deck per site, customer or client, each with only its own rows.</p></div>
+          <div class="card"><h3>Stays on your computer</h3><p>No cloud, no account, no upload. Works on computers without internet too.</p></div>
+          <div class="card"><h3>Plain-language checks</h3><p>"No data for {{oee}} on slide 2: add a row with key oee to the kpis sheet." Nothing is written until it's right.</p></div>
+          <div class="card"><h3>Smart slides</h3><p>Repeat a slide for every plant; show the incidents slide only when there were incidents; trend arrows from last month's numbers.</p></div>
+          <div class="card"><h3>One click next month</h3><p>Save the job as a recipe. Next month: update the workbook, click Run. Or schedule the command-line version.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="packs">
+      <div class="wrap">
+        <h2>Start from a template pack</h2>
+        <p class="sub">Three ready-made templates with sample data, free with the trial. Or tag your own deck in minutes.</p>
+        <div class="packs">
+          <figure><div class="shot"><img src="assets/ops-table.png" alt="Downtime by cause table from the operations review pack" width="1280" height="720" loading="lazy"></div><figcaption><strong>Operations review</strong><br><span class="small">OEE, output, scrap and downtime with trends.</span></figcaption></figure>
+          <figure><div class="shot"><img src="assets/scorecard-combo.png" alt="Combo chart of volume and yield from the KPI scorecard pack" width="1280" height="720" loading="lazy"></div><figcaption><strong>KPI scorecard</strong><br><span class="small">Targets vs actuals, scrap by cause, volume vs yield.</span></figcaption></figure>
+          <figure><div class="shot"><img src="assets/client-chart.png" alt="Leads by channel chart from the client monthly report pack" width="1280" height="720" loading="lazy"></div><figcaption><strong>Client monthly report</strong><br><span class="small">One deck per client from one workbook.</span></figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt">
+      <div class="wrap">
+        <h2>Versus rebuilding it by hand</h2>
+        <div class="table-scroll">
+          <table class="compare">
+            <thead><tr><th></th><th>By hand</th><th>DeckForge</th></tr></thead>
+            <tbody>
+              <tr><th>Monthly deck</th><td>Hours of copy and paste</td><td class="yes">Minutes</td></tr>
+              <tr><th>20 client or plant decks</th><td>A day or more</td><td class="yes">Same minutes</td></tr>
+              <tr><th>Charts</th><td>Re-pasted, sometimes as pictures</td><td class="yes">Native, editable, data inside</td></tr>
+              <tr><th>Copy-paste mistakes</th><td>Happen</td><td class="yes">Checked before writing</td></tr>
+              <tr><th>Your design</th><td>Yours</td><td class="yes">Still yours</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <h2>Questions</h2>
+        <details><summary>Do I need PowerPoint installed?</summary><p>No. DeckForge writes .pptx files directly. PowerPoint (or LibreOffice) is only used, if present, to show a preview inside the app.</p></details>
+        <details><summary>Does it work on a Mac?</summary><p>Yes: Windows and macOS.</p></details>
+        <details><summary>Does my data leave my computer?</summary><p>No. Templates, workbooks and decks never leave your computer. The only optional network calls are registering your license and checking for updates, and you can turn both off. It works on computers without internet.</p></details>
+        <details><summary>Will it work with my company's template?</summary><p>Very likely: text, tables and the common chart types (bar, column, line, area, pie, doughnut and combos). DeckForge checks your template and tells you, in plain words, about anything it can't fill. Template setup is also available as a service.</p></details>
+        <details><summary>Where does the data come from?</summary><p>An Excel workbook (or your system's export pasted into one). Direct database and historian connections are planned for a server edition.</p></details>
+        <details><summary>What does "one-time license" mean?</summary><p>You pay once and keep using the version you bought, forever. Twelve months of updates are included. After that, renewing updates is optional.</p></details>
+        <details><summary>What if it doesn't work for me?</summary><p>Try it free first; the trial only adds a small "Made with DeckForge" note to each slide. After buying, there's a 30-day refund. See the <a href="refund.html">refund policy</a>.</p></details>
+      </div>
+    </section>
+
+    <section class="alt" id="signup">
+      <div class="wrap">
+        <h2>Get early access</h2>
+        <p class="sub">One email when DeckForge is ready, with the launch discount. No newsletter, no sharing your address.</p>
+        <form class="signup" id="signup-form">
+          <input type="email" name="email" placeholder="you@company.com" required autocomplete="email" aria-label="Email address">
+          <button class="btn primary" type="submit">Notify me</button>
+        </form>
+        <p class="small" id="signup-status" role="status"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© 2026 DEQ Labs LLC</span>
+      <span><a href="pricing.html">Pricing</a> · <a href="refund.html">Refunds</a> · <a href="terms.html">Terms</a> · <a href="eula.html">EULA</a> · <a href="privacy.html">Privacy</a> · <a data-email href="#signup">Contact</a></span>
+    </div>
+  </footer>
+  <script src="config.js"></script>
+  <script src="site.js"></script>
+</body>
+</html>
