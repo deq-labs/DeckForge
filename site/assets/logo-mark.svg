@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DeckForge">
+  <!-- Placeholder mark: a deck (two slides) with a rising chart, and a spark for "forge". -->
+  <rect width="512" height="512" rx="112" fill="#1F3864"/>
+  <rect x="140" y="112" width="276" height="194" rx="22" fill="#FFFFFF" opacity="0.32"/>
+  <rect x="96" y="166" width="300" height="214" rx="24" fill="#FFFFFF"/>
+  <rect x="134" y="300" width="46" height="50" rx="8" fill="#2E75B6"/>
+  <rect x="200" y="260" width="46" height="90" rx="8" fill="#2E75B6"/>
+  <rect x="266" y="214" width="46" height="136" rx="8" fill="#2E75B6"/>
+  <path d="M392 92 Q400 132 440 140 Q400 148 392 188 Q384 148 344 140 Q384 132 392 92 Z" fill="#F2A33A"/>
+</svg>

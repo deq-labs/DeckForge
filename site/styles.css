@@ -42,7 +42,7 @@ a { color: var(--accent); }
 header.top { border-bottom: 1px solid var(--line); }
 header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
 .brand { font-weight: 700; font-size: 19px; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
-.brand span { color: var(--accent); }
+.brand img { display: block; border-radius: 7px; }
 nav { display: flex; gap: 18px; font-size: 15px; flex-wrap: wrap; }
 nav a { color: var(--muted); text-decoration: none; }
 nav a:hover { color: var(--text); }

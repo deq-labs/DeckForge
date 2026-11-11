@@ -53,6 +53,8 @@ function createWindow(): void {
     minWidth: 900,
     minHeight: 600,
     title: 'DeckForge',
+    // Installed builds take the icon from the executable; this covers development runs.
+    ...(app.isPackaged ? {} : { icon: join(__dirname, '..', 'build', 'icon.png') }),
     backgroundColor: '#f6f7f9',
     webPreferences: {
       preload: join(__dirname, 'preload.cjs'),

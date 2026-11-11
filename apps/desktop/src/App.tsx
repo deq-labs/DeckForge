@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { CheckView, GenerateView, JobOptions, JobSpec, LicenseView, PreviewTool, Recipe, TemplateInfo } from '../electron/api.ts';
 import { DEFAULT_OPTIONS, LOCALES, countBySeverity, defaultOutDir, newId, plural, slotStatus, splitPath, stem } from './logic.ts';
 import { ProblemList } from './components/ProblemList.tsx';
+import logoUrl from '../../../brand/logo-mark.svg';
 import { RecipeList } from './components/RecipeList.tsx';
 import { LicensePanel } from './components/LicensePanel.tsx';
 
@@ -155,7 +156,7 @@ export function App(): React.JSX.Element {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="logo" aria-hidden>◆</span> DeckForge <span className="edition">Lite</span>
+          <img className="logo" src={logoUrl} alt="" width={24} height={24} /> DeckForge <span className="edition">Lite</span>
         </div>
         <button className={`license-badge ${trial ? 'trial' : 'licensed'}`} onClick={() => setShowLicense(true)}>
           {license ? (trial ? 'Trial' : `Licensed${license.licensee ? ` to ${license.licensee}` : ''}`) : '…'}
