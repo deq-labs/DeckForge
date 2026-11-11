@@ -10,6 +10,8 @@ const common = {
   sourcemap: true,
   external: ['electron'],
   logLevel: 'warning',
+  // Release date decides which licenses cover this build (see docs/design-log/0007-licensing.md).
+  define: { __DECKFORGE_RELEASE_DATE__: JSON.stringify(process.env.RELEASE_DATE ?? new Date().toISOString().slice(0, 10)) },
 };
 
 await Promise.all([

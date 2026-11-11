@@ -206,9 +206,9 @@ Build the Lite track first, in phase order. The Services track starts as soon as
 
 #### L4 — Licensing and installers
 
-- [ ] Ed25519 license keys, offline check, activation file flow, seat count
-- [ ] Signed Windows installer and notarized Mac build; auto-update for licensed users
-- [ ] Checkout webhook issues keys; a license-recovery page
+- [x] Ed25519 license keys, offline check, activation file flow, seat count — design-log 0007
+- [ ] Signed Windows installer and notarized Mac build; auto-update for licensed users — built and wired (electron-builder, release workflow, entitlement-aware updates); needs certificates, Apple account and an update host (docs/release.md)
+- [x] Checkout webhook issues keys; a license-recovery page — `apps/license-server`; needs deploying (docs/licensing-operations.md)
 
 #### L5 — Template packs and docs
 

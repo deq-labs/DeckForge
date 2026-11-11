@@ -1,10 +1,10 @@
-import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import ExcelJS from 'exceljs';
 import { Template } from '@deckforge/pptx-engine';
-import { batch, check, fill, initData, slots } from '../src/commands.ts';
+import { batch, check, fill, initData, license, slots } from '../src/commands.ts';
 import { UserError } from '../src/files.ts';
 import type { Io } from '../src/report.ts';
 
@@ -116,5 +116,43 @@ describe('deckforge batch / check', () => {
     expect(await check(p('ops.pptx'), p('b.xlsx'), {}, io)).toBe(0);
     expect(text()).toContain('ready (0 errors, 0 warnings; 2 decks would be made)');
     expect(existsSync(p('ops-decks'))).toBe(false);
+  });
+});
+
+describe('deckforge license', () => {
+  const footer = async (file: string): Promise<boolean> => {
+    const { default: JSZip } = await import('jszip');
+    const zip = await JSZip.loadAsync(readFileSync(file));
+    return (await zip.file('ppt/slides/slide1.xml')!.async('string')).includes('Made with DeckForge');
+  };
+
+  it('adds the trial footer until a valid key is activated, then stops', async () => {
+    const { generateKeyPair, signLicense } = await import('@deckforge/licensing');
+    const kp = await generateKeyPair();
+    process.env.DECKFORGE_CONFIG_DIR = p('config');
+    process.env.DECKFORGE_LICENSE_PUBLIC_KEY = kp.publicKey;
+    try {
+      await initData(p('ops.pptx'), { output: p('d.xlsx') }, io);
+      await fill(p('ops.pptx'), p('d.xlsx'), { output: p('trial.pptx'), missing: 'keep' }, io);
+      expect(await footer(p('trial.pptx'))).toBe(true);
+      expect(text()).toContain('Trial mode');
+
+      await expect(license('activate', 'not-a-key', io)).rejects.toThrow(/not a DeckForge license key/);
+      const key = await signLicense({ v: 1, id: 'T-1', product: 'deckforge', edition: 'lite', licensee: 'Tester', seats: 1, issuedAt: '2026-11-11T00:00:00Z', updatesUntil: '2099-01-01' }, kp.privateKey);
+      writeFileSync(p('license.txt'), `-----BEGIN DECKFORGE LICENSE-----\n${key}\n-----END DECKFORGE LICENSE-----\n`);
+      expect(await license('activate', p('license.txt'), io)).toBe(0);
+      expect(await license('status', undefined, io)).toBe(0);
+      expect(text()).toContain('Licensed to Tester (1 seat, free updates until 2099-01-01).');
+
+      await fill(p('ops.pptx'), p('d.xlsx'), { output: p('licensed.pptx'), missing: 'keep' }, io);
+      expect(await footer(p('licensed.pptx'))).toBe(false);
+
+      await license('remove', undefined, io);
+      await fill(p('ops.pptx'), p('d.xlsx'), { output: p('again.pptx'), missing: 'keep' }, io);
+      expect(await footer(p('again.pptx'))).toBe(true);
+    } finally {
+      delete process.env.DECKFORGE_CONFIG_DIR;
+      delete process.env.DECKFORGE_LICENSE_PUBLIC_KEY;
+    }
   });
 });

@@ -1,9 +1,11 @@
+import { existsSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import type { FillOptions, Manifest, OnMissing, Template } from '@deckforge/pptx-engine';
 import { createWorkbook } from '@deckforge/data-xlsx';
 import { check as checkJob, loadTemplate as loadTpl, run } from '@deckforge/jobs';
 import type { Problem, RunOptions } from '@deckforge/jobs';
 import { UserError, readInput, samePath, writeOutput } from './files.ts';
+import { WATERMARK, keyLocation, licenseState, removeKey, saveKey } from './license.ts';
 import { plural, printProblems } from './report.ts';
 import type { Io } from './report.ts';
 
@@ -128,6 +130,14 @@ function wrapRead<T>(dataPath: string, f: () => Promise<T>): Promise<T> {
   });
 }
 
+/** Trial runs add the footer; says so once per run, on stderr. */
+async function licensed(options: FillOptions, io: Io): Promise<FillOptions> {
+  const st = await licenseState();
+  if (st.mode === 'licensed') return options;
+  io.err(`Trial mode: decks get a small "${WATERMARK}" footer. ${st.problem ? `(${st.problem}) ` : ''}Activate with: deckforge license activate <key>`);
+  return { ...options, watermark: WATERMARK };
+}
+
 const keepHint = (opts: FillOptions): string => (opts.onMissing === 'error' ? ' (or use --missing keep to leave unfilled tags visible)' : '');
 
 export async function fill(templatePath: string, dataPath: string, opts: FillCliOptions, io: Io): Promise<number> {
@@ -138,7 +148,7 @@ export async function fill(templatePath: string, dataPath: string, opts: FillCli
 
   const tpl = await loadTemplate(templatePath);
   const data = readInput(dataPath, 'data workbook');
-  const runOpts: RunOptions = { ...options, templateName: stem(templatePath) };
+  const runOpts: RunOptions = { ...(await licensed(options, io)), templateName: stem(templatePath) };
   const pre = await wrapRead(dataPath, () => checkJob(tpl, data, runOpts));
   if (pre.batches.length > 1) {
     throw new UserError(
@@ -161,8 +171,9 @@ export async function batch(templatePath: string, dataPath: string, opts: BatchC
   const options = fillOptions(opts);
   const tpl = await loadTemplate(templatePath);
   const data = readInput(dataPath, 'data workbook');
+  const licensedOpts = await licensed(options, io);
   const result = await wrapRead(dataPath, () =>
-    run(tpl, data, { ...options, templateName: stem(templatePath), namePattern: opts.name ?? '{template}-{batch}.pptx' }),
+    run(tpl, data, { ...licensedOpts, templateName: stem(templatePath), namePattern: opts.name ?? '{template}-{batch}.pptx' }),
   );
   if (result.ok && result.batches.length === 0) {
     io.err('warning: the workbook has no batch column, so this makes a single deck. Add a column named "batch" to any sheet to split it.');
@@ -194,5 +205,34 @@ export async function check(templatePath: string, dataPath: string | undefined, 
   }
   const decks = dataPath ? `; ${plural(result.deckCount, 'deck')} would be made` : '';
   io.out(`\n${what}: ready (${summary}${decks}).`);
+  return 0;
+}
+
+// ---------------------------------------------------------------- license
+
+export async function license(action: string, key: string | undefined, io: Io): Promise<number> {
+  if (action === 'activate') {
+    if (!key) throw new UserError('Usage: deckforge license activate <key or path to license file>');
+    // A path to the license file, or the key itself.
+    const text = existsSync(key) ? new TextDecoder().decode(readInput(key, 'license file')) : key;
+    const r = await saveKey(text);
+    if (!r.ok) throw new UserError(r.reason);
+    io.out(`Activated. Licensed to ${r.state.license?.licensee}${r.state.problem ? `, but: ${r.state.problem}` : '.'}`);
+    return r.state.mode === 'licensed' ? 0 : 1;
+  }
+  if (action === 'remove') {
+    removeKey();
+    io.out('The license was removed from this computer.');
+    return 0;
+  }
+  const st = await licenseState();
+  if (st.mode === 'licensed') {
+    const l = st.license!;
+    io.out(`Licensed to ${l.licensee} (${plural(l.seats, 'seat')}, free updates until ${l.updatesUntil}).`);
+    io.out(`Key: ${keyLocation()}`);
+  } else {
+    io.out(`Trial mode: decks get a small "${WATERMARK}" footer.`);
+    if (st.problem) io.out(st.problem);
+  }
   return 0;
 }

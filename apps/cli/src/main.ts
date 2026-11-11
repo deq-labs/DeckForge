@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command, Option } from 'commander';
-import { batch, check, fill, initData, slots } from './commands.ts';
+import { batch, check, fill, initData, license, slots } from './commands.ts';
 import { UserError } from './files.ts';
 import { consoleIo } from './report.ts';
 
@@ -59,6 +59,13 @@ program
   .addOption(new Option('--missing <mode>', 'what to do with tags that have no data').choices(['error', 'keep', 'blank']).default('error'))
   .action((template: string, data: string | undefined, opts) => run(() => check(template, data, opts, consoleIo)));
 
+program
+  .command('license')
+  .description('Show, activate or remove the DeckForge license on this computer (no network needed).')
+  .argument('[action]', 'status | activate | remove', 'status')
+  .argument('[key]', 'license key, or path to the license file (for activate)')
+  .action((action: string, key: string | undefined) => run(() => license(action, key, consoleIo)));
+
 async function run(task: () => Promise<number>): Promise<void> {
   try {
     process.exitCode = await task();
@@ -74,4 +81,4 @@ async function run(task: () => Promise<number>): Promise<void> {
   }
 }
 
-await program.parseAsync();
+void program.parseAsync();

@@ -176,7 +176,8 @@ export function App(): React.JSX.Element {
         )}
         {trial && license && (
           <div className="banner info">
-            {license.summary} <button className="link" onClick={() => setShowLicense(true)}>Enter a license key</button>
+            {license.problem ?? license.summary}{' '}
+            <button className="link" onClick={() => setShowLicense(true)}>{license.licensee ? 'License details' : 'Enter a license key'}</button>
           </div>
         )}
 

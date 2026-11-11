@@ -29,11 +29,16 @@ wb.getWorksheet('kpis').eachRow((row, n) => {
 const data = resolve(out, 'data.xlsx');
 await wb.xlsx.writeFile(data);
 
+// Licensed run: a throwaway key pair, its public key passed via the dev-only override.
+const { generateKeyPair, signLicense } = await import('@deckforge/licensing');
+const kp = await generateKeyPair();
+const licenseKey = await signLicense({ v: 1, id: 'SMOKE-1', product: 'deckforge', edition: 'lite', licensee: 'Smoke Test', seats: 1, issuedAt: new Date().toISOString(), updatesUntil: '2099-12-31' }, kp.privateKey);
+
 const electron = createRequire(import.meta.url)('electron');
-const cfg = { template, data, outDir: resolve(out, 'decks'), screenshot: resolve(out, 'window.png'), report: resolve(out, 'report.json') };
-const r = spawnSync(electron, ['.'], { env: { ...process.env, DECKFORGE_SMOKE: JSON.stringify(cfg) }, timeout: 120_000, stdio: 'inherit' });
+const cfg = { template, data, outDir: resolve(out, 'decks'), screenshot: resolve(out, 'window.png'), report: resolve(out, 'report.json'), licenseKey };
+const r = spawnSync(electron, ['.'], { env: { ...process.env, DECKFORGE_SMOKE: JSON.stringify(cfg), DECKFORGE_LICENSE_PUBLIC_KEY: kp.publicKey }, timeout: 120_000, stdio: 'inherit' });
 const report = JSON.parse(readFileSync(cfg.report, 'utf8'));
 console.log(report);
-const ok = r.status === 0 && report.hasApi && report.checkOk && report.files?.length === 1;
+const ok = r.status === 0 && report.hasApi && report.checkOk && report.files?.length === 1 && report.activatedMode === 'licensed' && report.watermarked === false && report.license === 'licensed';
 console.log(ok ? `desktop smoke ok; screenshot: ${cfg.screenshot}` : 'desktop smoke FAILED');
 process.exit(ok ? 0 : 1);

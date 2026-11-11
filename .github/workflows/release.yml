@@ -1,0 +1,95 @@
+name: Release
+
+# Push a tag like v0.1.0 to build installers and the CLI bundle into a draft GitHub release.
+# Signing/notarization happen only when the secrets exist (see docs/release.md); without them the
+# builds are unsigned, which is fine for testing but shows OS warnings to customers.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+          - os: macos-latest
+            target: --mac
+    runs-on: ${{ matrix.os }}
+    env:
+      DECKFORGE_UPDATE_URL: ${{ vars.DECKFORGE_UPDATE_URL }}
+      # Windows: .pfx as base64 + password. macOS: Developer ID .p12 as base64 + password.
+      CSC_LINK: ${{ matrix.os == 'windows-latest' && secrets.WIN_CSC_LINK || secrets.MAC_CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ matrix.os == 'windows-latest' && secrets.WIN_CSC_KEY_PASSWORD || secrets.MAC_CSC_KEY_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MAC_CSC_LINK && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - name: Release date (decides which licenses cover this build)
+        run: echo "RELEASE_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
+        shell: bash
+      - name: Build app
+        run: pnpm --filter @deckforge/desktop build
+        shell: bash
+      - name: Package installers
+        working-directory: apps/desktop
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        shell: bash
+      - uses: actions/upload-artifact@v7
+        with:
+          name: desktop-${{ matrix.os }}
+          path: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
+            apps/desktop/release/*.blockmap
+            apps/desktop/release/latest*.yml
+
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - run: echo "RELEASE_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
+      - run: pnpm --filter @deckforge/cli build
+      - run: node apps/cli/dist/deckforge.cjs --version
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cli
+          path: apps/cli/dist/deckforge.cjs
+
+  release:
+    needs: [desktop, cli]
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/* --repo "$GITHUB_REPOSITORY" --draft --title "DeckForge $GITHUB_REF_NAME" --notes "Draft: review, then upload the installers and latest*.yml to the update host (docs/release.md)."

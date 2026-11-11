@@ -4,4 +4,7 @@ packages:
   - tools/*
 allowBuilds:
   electron: true
+  electron-builder: true
   esbuild: true
+  # Squirrel.Windows installer helper pulled in by electron-builder; we build NSIS, so it never needs to run.
+  electron-winstaller: false

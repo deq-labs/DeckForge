@@ -5,11 +5,12 @@ import tseslint from 'typescript-eslint';
 /**
  * Boundaries (see docs/design-log/0002-boundaries-via-restricted-imports.md):
  * 1. Lite code (shared packages, cli, desktop) must never import Pro code.
- * 2. pptx-engine and data-xlsx are pure: no file, network or process I/O,
+ * 2. pptx-engine, data-xlsx, jobs and licensing are pure: no file, network or process I/O,
  *    and no imports from apps.
+ * 3. The vendor license server is never shipped to customers, so customer-facing code can't import it.
  */
-const PRO_PACKAGES = ['@deckforge/server', '@deckforge/web', '@deckforge/connectors'];
-const PRO_PATHS = ['**/apps/server/**', '**/apps/web/**', '**/packages/connectors/**'];
+const PRO_PACKAGES = ['@deckforge/server', '@deckforge/web', '@deckforge/connectors', '@deckforge/license-server'];
+const PRO_PATHS = ['**/apps/server/**', '**/apps/web/**', '**/packages/connectors/**', '**/apps/license-server/**'];
 const APP_PACKAGES = ['@deckforge/cli', '@deckforge/desktop'];
 const IO_MODULES = [
   'fs', 'fs/promises', 'child_process', 'net', 'http', 'https', 'http2',
@@ -19,7 +20,7 @@ const IO_MODULES = [
 const noPro = {
   paths: PRO_PACKAGES.map((name) => ({
     name,
-    message: 'Lite code must not import Pro packages (server, web, connectors).',
+    message: 'Lite code must not import Pro packages (server, web, connectors) or the vendor license server.',
   })),
   patterns: [
     { group: PRO_PACKAGES.map((p) => `${p}/*`), message: 'Lite code must not import Pro packages.' },
@@ -47,7 +48,7 @@ export default tseslint.config(
     rules: { 'no-restricted-imports': ['error', noPro] },
   },
   {
-    files: ['packages/pptx-engine/src/**', 'packages/data-xlsx/src/**', 'packages/jobs/src/**'],
+    files: ['packages/pptx-engine/src/**', 'packages/data-xlsx/src/**', 'packages/jobs/src/**', 'packages/licensing/src/**'],
     rules: {
       'no-restricted-imports': ['error', {
         paths: [

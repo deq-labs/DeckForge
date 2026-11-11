@@ -31,6 +31,13 @@ const api: DeckforgeApi = {
     status: call('license.status'),
     activate: call('license.activate'),
     deactivate: call('license.deactivate'),
+    requestCode: call('license.requestCode'),
+  },
+  updates: {
+    status: call('updates.status'),
+    check: call('updates.check'),
+    setAuto: call('updates.setAuto'),
+    install: call('updates.install'),
   },
 };
 
