@@ -1,0 +1,19 @@
+{
+  "name": "@deckforge/pptx-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fill tagged PowerPoint templates with data. Pure: buffers in, buffers out.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.2"
+  }
+}

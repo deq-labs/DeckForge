@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+# generated outputs
+out/
+*.tmp.pptx
+~$*.pptx
+# .NET build output
+bin/
+obj/
+# build output (desktop app, CLI bundle)
+dist-electron/
+release/

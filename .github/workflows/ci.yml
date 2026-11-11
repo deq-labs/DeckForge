@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: typecheck, lint, test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Lite ships on Windows and Mac; Linux runs the output-validity smoke test.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6 # version comes from packageManager in package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  smoke:
+    name: output opens in LibreOffice and passes Open XML validation
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+      - name: Install LibreOffice
+        # Ubuntu mirrors are sometimes unreachable from runners; the Open XML check below still runs.
+        id: libreoffice
+        continue-on-error: true
+        timeout-minutes: 10
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-impress
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm smoke ${{ steps.libreoffice.outcome == 'success' && '--require-all' || '--require-validator' }}
+      - if: steps.libreoffice.outcome != 'success'
+        run: echo "::warning::LibreOffice could not be installed on this runner; the LibreOffice round trip was skipped (Open XML validation ran)."
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-output
+          path: out/smoke
