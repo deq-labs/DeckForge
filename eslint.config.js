@@ -28,7 +28,7 @@ const noPro = {
 };
 
 export default tseslint.config(
-  { ignores: ['**/node_modules/**', '**/dist/**', '**/coverage/**', 'fixtures/**'] },
+  { ignores: ['**/node_modules/**', '**/dist/**', '**/dist-electron/**', '**/release/**', '**/coverage/**', 'fixtures/**', 'out/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -36,6 +36,11 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': 'error',
     },
+  },
+  {
+    // Plain-JS build scripts run on Node.
+    files: ['**/*.mjs', '**/*.cjs'],
+    languageOptions: { globals: { process: 'readonly', console: 'readonly', Buffer: 'readonly', __dirname: 'readonly' } },
   },
   {
     files: ['packages/pptx-engine/**', 'packages/data-xlsx/**', 'packages/jobs/**', 'packages/licensing/**', 'apps/cli/**', 'apps/desktop/**', 'tools/**'],

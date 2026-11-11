@@ -1,0 +1,33 @@
+{
+  "name": "@deckforge/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DeckForge Lite desktop app: pick a template and a workbook, check, generate, preview.",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "build:electron": "node scripts/build-electron.mjs",
+    "build": "vite build && node scripts/build-electron.mjs",
+    "start": "pnpm build && electron .",
+    "dev": "node scripts/dev.mjs",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.electron.json",
+    "test": "vitest run --passWithNoTests",
+    "smoke": "pnpm build && node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@deckforge/data-xlsx": "workspace:*",
+    "@deckforge/jobs": "workspace:*",
+    "@deckforge/pptx-engine": "workspace:*",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.2.3",
+    "esbuild": "^0.28.2",
+    "exceljs": "^4.4.0",
+    "vite": "^8.3.7"
+  }
+}

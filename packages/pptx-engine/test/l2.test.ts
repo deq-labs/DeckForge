@@ -184,3 +184,15 @@ describe('performance', () => {
     expect(ms).toBeLessThan(5000);
   });
 });
+
+describe('trial watermark', () => {
+  it('adds a small text box to every slide that is never read as a slot', async () => {
+    const tpl = await Template.load(fixture('l2-features.pptx'));
+    const bytes = (await tpl.fill(base, { watermark: 'Made with DeckForge' })).toBuffer();
+    const texts = await slideTexts(bytes);
+    expect(texts.filter((t) => t.endsWith('Made with DeckForge'))).toHaveLength(7);
+    const back = (await Template.load(bytes)).slots();
+    expect(back.issues.some((i) => /watermark/i.test(i.message))).toBe(false);
+    expect([...back.tables, ...back.charts].some((x) => /watermark/i.test(x.name))).toBe(false);
+  });
+});

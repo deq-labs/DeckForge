@@ -8,7 +8,7 @@ import type { ChartInfo } from './chart.ts';
 import { buildChartWorkbook } from './workbook.ts';
 import { formatScalar, normalizeEntry, renderField, validateFormat } from './format.ts';
 import type { FormatContext } from './format.ts';
-import { deleteSlide, duplicateSlide, listSlides, notesPathOf, presentationPath } from './slides.ts';
+import { addWatermark, deleteSlide, duplicateSlide, listSlides, notesPathOf, presentationPath } from './slides.ts';
 import type {
   ChartSlot, DeckData, FillOptions, Issue, Manifest, RepeatSlot, Scalar, SlideRule, TableSlot, TextField, TextSlot, ValueEntry,
 } from './types.ts';
@@ -359,6 +359,12 @@ export class Template {
     }
 
     if (issues.some((i) => i.severity === 'error')) throw new FillError(issues);
+    if (options.watermark) {
+      const pres = (await pkg.xml(await presentationPath(pkg))).documentElement!;
+      const sz = descendants(pres, NS.p, 'sldSz')[0];
+      const width = Number(sz?.getAttribute('cx') ?? 12192000);
+      for (const slide of a.slides) addWatermark(await pkg.xml(slide.path), options.watermark, width, a.manifest.slideHeight);
+    }
     await pkg.collectGarbage();
     return new Deck(await pkg.save(), issues);
   }

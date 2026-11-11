@@ -199,10 +199,10 @@ Build the Lite track first, in phase order. The Services track starts as soon as
 
 #### L3 — Desktop app
 
-- [ ] Electron shell: choose template, choose data, run checker, generate, open output folder
-- [ ] Slot checklist view; rendered preview when LibreOffice or PowerPoint is installed
-- [ ] Recent jobs saved as "recipes" (template + data path + options) for one-click monthly reruns
-- [ ] Trial watermark mode
+- [x] Electron shell: choose template, choose data, run checker, generate, open output folder
+- [x] Slot checklist view; rendered preview when LibreOffice or PowerPoint is installed
+- [x] Recent jobs saved as "recipes" (template + data path + options) for one-click monthly reruns
+- [x] Trial watermark mode
 
 #### L4 — Licensing and installers
 
