@@ -14,20 +14,21 @@
     "test": "vitest run --passWithNoTests",
     "smoke": "pnpm build && node scripts/smoke.mjs"
   },
-  "dependencies": {
+  "devDependencies": {
     "@deckforge/data-xlsx": "workspace:*",
     "@deckforge/jobs": "workspace:*",
+    "@deckforge/licensing": "workspace:*",
     "@deckforge/pptx-engine": "workspace:*",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
-  },
-  "devDependencies": {
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "electron-updater": "^6.8.11",
     "esbuild": "^0.28.2",
     "exceljs": "^4.4.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "vite": "^8.3.7"
   }
 }

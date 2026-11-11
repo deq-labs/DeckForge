@@ -1,0 +1,46 @@
+# Installers for DeckForge Lite. See docs/release.md for signing and publishing.
+appId: com.deqlabs.deckforge
+productName: DeckForge
+copyright: Copyright © 2026 DEQ Labs LLC
+directories:
+  output: release
+  buildResources: build
+# Everything is pre-bundled (Vite + esbuild), so no node_modules are shipped.
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+  - "!**/*.map"
+asar: true
+npmRebuild: false
+
+win:
+  target: [nsis]
+  artifactName: DeckForge-Setup-${version}.${ext}
+  # Signing: set CSC_LINK + CSC_KEY_PASSWORD (a .pfx), or configure Azure Trusted Signing
+  # (win.azureSignOptions) once you have it. Unsigned builds work but show SmartScreen warnings.
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  license: build/eula.txt
+
+mac:
+  target:
+    - target: dmg
+      arch: [universal]
+    - target: zip # auto-update on macOS needs the zip
+      arch: [universal]
+  category: public.app-category.productivity
+  hardenedRuntime: true
+  # Notarizes when APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID are set,
+  # signing with the Developer ID certificate in CSC_LINK / CSC_KEY_PASSWORD.
+  notarize: true
+  artifactName: DeckForge-${version}-mac.${ext}
+
+# Auto-update feed: any static https host (S3, R2, your site). The URL is set at build time so
+# it never has to be a guess baked into the repo; electron-updater reads app-update.yml.
+publish:
+  provider: generic
+  url: ${env.DECKFORGE_UPDATE_URL}

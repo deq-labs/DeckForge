@@ -1,0 +1,14 @@
+{
+  "name": "@deckforge/licensing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ed25519-signed license keys and activation tokens, verified offline. No dependencies (WebCrypto).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@deckforge/license-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vendor backend: checkout webhook issues license keys, key recovery, seat activation. Not shipped to customers.",
+  "scripts": {
+    "start": "node src/main.ts",
+    "admin": "node src/admin.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@deckforge/licensing": "workspace:*"
+  }
+}

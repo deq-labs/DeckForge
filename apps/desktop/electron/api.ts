@@ -85,6 +85,23 @@ export interface LicenseView {
   updatesUntil?: string;
   /** Present when the key on file is invalid or doesn't cover this version. */
   problem?: string;
+  /** This computer's seat is registered (online activation, or an activation file). */
+  activated: boolean;
+  /** A license server is configured, so online registration is possible. */
+  canActivateOnline: boolean;
+  /** Page for activation files (offline computers), when a server is configured. */
+  offlineActivationUrl?: string;
+  recoveryUrl?: string;
+}
+
+export type UpdateState = 'disabled' | 'idle' | 'checking' | 'none' | 'available' | 'downloading' | 'ready' | 'not-covered' | 'error';
+
+export interface UpdateView {
+  state: UpdateState;
+  /** Check automatically at startup (off by default: no network calls unless the user opts in). */
+  auto: boolean;
+  version?: string;
+  message?: string;
 }
 
 export interface DeckforgeApi {
@@ -108,8 +125,21 @@ export interface DeckforgeApi {
   };
   license: {
     status(): Promise<LicenseView>;
-    /** Activates a license key (pasted text or the contents of a license file). */
-    activate(key: string): Promise<LicenseView>;
+    /**
+     * Activates a license key or loads an activation file (pasted text or file contents).
+     * With online: true and a configured server, also registers this computer's seat.
+     */
+    activate(text: string, opts?: { online?: boolean }): Promise<LicenseView>;
+    /** Removes the license from this computer (and frees the seat online when possible). */
     deactivate(): Promise<LicenseView>;
+    /** Code to carry to the activation page from a computer without internet. */
+    requestCode(): Promise<string>;
+  };
+  updates: {
+    status(): Promise<UpdateView>;
+    check(): Promise<UpdateView>;
+    setAuto(auto: boolean): Promise<UpdateView>;
+    /** Restarts into a downloaded update. */
+    install(): Promise<void>;
   };
 }

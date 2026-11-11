@@ -1,0 +1,4 @@
+DECKFORGE END USER LICENSE AGREEMENT (PLACEHOLDER)
+
+This is a placeholder. Replace it with the EULA reviewed for DEQ Labs LLC before the first
+public release (spec L6). The installer shows this text and asks the user to accept it.

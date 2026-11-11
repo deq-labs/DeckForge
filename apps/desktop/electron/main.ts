@@ -9,11 +9,31 @@ import { WATERMARK, checkJob, generateJob, inspectTemplate, writeDataFile } from
 import { RecipeStore } from './services/recipes.ts';
 import { chooseTool, detectTools, renderPdf } from './services/preview.ts';
 import { LicenseService } from './services/license.ts';
+import type { LicenseConfig } from './services/license.ts';
+import { UpdateService } from './services/updates.ts';
+import type { Updater } from './services/updates.ts';
+import { LICENSE_SERVER_URL, PRODUCTION_PUBLIC_KEY } from '@deckforge/licensing';
+import { autoUpdater } from 'electron-updater';
+
+/** Set at build time by scripts/build-electron.mjs (YYYY-MM-DD); empty in development. */
+declare const __DECKFORGE_RELEASE_DATE__: string;
 
 const devServer = process.env.VITE_DEV_SERVER_URL;
 let win: BrowserWindow | null = null;
 let recipes: RecipeStore;
 let license: LicenseService;
+let updates: UpdateService;
+
+/** Production values, with overrides for development and tests only (never in installed builds). */
+function licenseConfig(): LicenseConfig {
+  const dev = !app.isPackaged;
+  const release = typeof __DECKFORGE_RELEASE_DATE__ === 'string' && __DECKFORGE_RELEASE_DATE__ ? __DECKFORGE_RELEASE_DATE__ : undefined;
+  return {
+    publicKey: (dev && process.env.DECKFORGE_LICENSE_PUBLIC_KEY) || PRODUCTION_PUBLIC_KEY,
+    releaseDate: (dev && process.env.DECKFORGE_RELEASE_DATE) || (app.isPackaged ? release : undefined),
+    serverUrl: (dev && process.env.DECKFORGE_LICENSE_SERVER_URL) || LICENSE_SERVER_URL,
+  };
+}
 
 /** Paths the UI may ask the OS to open: files the user picked or DeckForge wrote. */
 const openable = new Set<string>();
@@ -95,7 +115,7 @@ function registerIpc(): void {
   });
   handle('check', async (spec: JobSpec) => checkJob(assertSpec(spec)));
   handle('generate', async (spec: JobSpec) => {
-    const lic = license.status();
+    const lic = await license.status();
     const result = await generateJob(assertSpec(spec), lic.mode === 'licensed' ? undefined : WATERMARK);
     allow(spec.outDir);
     result.files.forEach(allow);
@@ -134,15 +154,20 @@ function registerIpc(): void {
   });
   handle('recipes.remove', async (id: string) => recipes.remove(id));
   handle('license.status', () => license.status());
-  handle('license.activate', (key: string) => license.activate(key));
+  handle('license.activate', (text: string, opts?: { online?: boolean }) => license.activate(text, opts ?? {}));
   handle('license.deactivate', () => license.deactivate());
+  handle('license.requestCode', () => license.requestCode());
+  handle('updates.status', () => updates.status());
+  handle('updates.check', () => updates.check());
+  handle('updates.setAuto', (auto: boolean) => updates.setAuto(auto));
+  handle('updates.install', () => updates.install());
 }
 
 /**
  * Smoke mode (tests/CI only): DECKFORGE_SMOKE=<json> drives the real renderer + IPC end to end,
  * writes a screenshot and a JSON report, then quits. Never set in normal use.
  */
-async function smoke(cfg: { template: string; data: string; outDir: string; screenshot: string; report: string }): Promise<void> {
+async function smoke(cfg: { template: string; data: string; outDir: string; screenshot: string; report: string; licenseKey?: string }): Promise<void> {
   const { writeFile } = await import('node:fs/promises');
   const w = win!;
   await new Promise<void>((r) => (w.webContents.isLoading() ? w.webContents.once('did-finish-load', () => r()) : r()));
@@ -150,11 +175,12 @@ async function smoke(cfg: { template: string; data: string; outDir: string; scre
   const spec: JobSpec = { templatePath: cfg.template, dataPath: cfg.data, outDir: cfg.outDir, options: { locale: 'en-US', currency: 'USD', missing: 'error' } };
   const js = `(async () => {
     const api = window.deckforge;
+    const activated = ${cfg.licenseKey ? `await api.license.activate(${JSON.stringify(cfg.licenseKey)})` : 'null'};
     const info = await api.inspect(${JSON.stringify(cfg.template)});
     const checked = await api.check(${JSON.stringify(spec)});
     const generated = await api.generate(${JSON.stringify(spec)});
     const lic = await api.license.status();
-    return { hasApi: !!api, slots: info.slots.length, checkOk: checked.ok, files: generated.files, watermarked: generated.watermarked, license: lic.mode };
+    return { hasApi: !!api, activatedMode: activated && activated.mode, slots: info.slots.length, checkOk: checked.ok, files: generated.files, watermarked: generated.watermarked, license: lic.mode };
   })()`;
   let report: unknown;
   try {
@@ -179,8 +205,14 @@ async function smoke(cfg: { template: string; data: string; outDir: string; scre
 
 app.whenReady().then(() => {
   const smokeCfg = process.env.DECKFORGE_SMOKE;
-  recipes = new RecipeStore(smokeCfg ? join(tmpdir(), `deckforge-smoke-${process.pid}`) : app.getPath('userData'));
-  license = new LicenseService();
+  const dataDir = smokeCfg ? join(tmpdir(), `deckforge-smoke-${process.pid}`) : app.getPath('userData');
+  recipes = new RecipeStore(dataDir);
+  license = new LicenseService(dataDir, licenseConfig());
+  updates = new UpdateService(dataDir, app.isPackaged ? (autoUpdater as unknown as Updater) : undefined, async () => {
+    const st = await license.state();
+    return st.mode === 'licensed' ? st.license?.updatesUntil : undefined;
+  });
+  void updates.init();
   if (!devServer) Menu.setApplicationMenu(null);
   registerIpc();
   createWindow();
