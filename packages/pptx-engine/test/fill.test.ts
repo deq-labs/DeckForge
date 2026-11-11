@@ -218,3 +218,62 @@ describe('fill: problems are explained', () => {
     await expect(Template.load(new TextEncoder().encode('hello'))).rejects.toThrow(/not a PowerPoint/);
   });
 });
+
+describe('fill: PowerPoint-authored template (golden)', () => {
+  const data: DeckData = {
+    values: {
+      title: 'October Operations Review',
+      site: 'Plant A',
+      period_start: new Date(Date.UTC(2026, 9, 1)),
+      period_end: new Date(Date.UTC(2026, 9, 31)),
+      oee: { value: 0.78, previous: 0.74, format: 'percent:1' },
+      output_units: { value: 48210, previous: 45000 },
+      scrap_rate: { value: 0.018, previous: 0.021, format: 'percent:1' },
+      downtime_hours: { value: 21.5, previous: 26, format: 'number:1' },
+      highlights: 'Line 3 changeover time cut by 20%\nNew supplier for resin starts in November',
+    },
+    tables: {
+      downtime: {
+        columns: ['Line', 'Cause', 'Minutes', 'Share'],
+        rows: [
+          ['Line 1', 'Changeover', 410, { value: 0.32, format: 'percent:0' }],
+          ['Line 2', 'Jam', 300, { value: 0.23, format: 'percent:0' }],
+          ['Line 3', 'Material shortage', 380, { value: 0.29, format: 'percent:0' }],
+          ['Line 4', 'Sensor fault', 200, { value: 0.16, format: 'percent:0' }],
+        ],
+      },
+    },
+    charts: {
+      downtime_by_line: {
+        categoryLabel: 'Line',
+        categories: ['Line 1', 'Line 2', 'Line 3'],
+        series: [
+          { name: 'Planned', values: [100, 80, 60] },
+          { name: 'Unplanned', values: [310, 220, 320] },
+        ],
+      },
+      oee_trend: {
+        categoryLabel: 'Month',
+        categories: ['Jul', 'Aug', 'Sep', 'Oct'],
+        series: [
+          { name: 'OEE', values: [0.69, 0.76, 0.74, 0.78] },
+          { name: 'Target', values: [0.75, 0.75, 0.75, 0.75] },
+        ],
+      },
+    },
+  };
+
+  it('fills placeholders, tiles, the styled table and both charts', async () => {
+    const deck = await (await Template.load(fixture('ppt-ops-review.pptx'))).fill(data);
+    expect(deck.issues).toEqual([]);
+    const bytes = deck.toBuffer();
+    expect(await slideTexts(bytes)).toMatchSnapshot('slide text');
+    const back = (await Template.load(bytes)).slots();
+    expect(back.text).toEqual([]);
+    expect(back.tables[0]!.sampleRows).toHaveLength(4);
+    expect(back.charts.map((c) => [c.name, c.sample.categories.length, c.sample.series.length])).toEqual([
+      ['downtime_by_line', 3, 2],
+      ['oee_trend', 4, 2],
+    ]);
+  });
+});

@@ -85,9 +85,15 @@ if (hasDotnet()) {
   const project = join(root, 'tools/ooxml-validate');
   const args = ['run', '--project', project, '-v', 'q', '--', ...outputs, '--baseline', ...templates.map((t) => join(templatesDir, t))];
   const r = spawnSync('dotnet', args, { encoding: 'utf8' });
-  process.stdout.write(r.stdout);
-  process.stderr.write(r.stderr);
-  if (r.status !== 0) fail('Open XML schema validation');
+  const blocked = /Application Control policy has blocked/.test(`${r.stdout}${r.stderr}`);
+  if (blocked && !requireAll) {
+    // Windows Smart App Control / WDAC can refuse locally built, unsigned assemblies. CI still validates.
+    console.log('skip Open XML validation (Windows Application Control blocked the locally built validator)');
+  } else {
+    process.stdout.write(r.stdout);
+    process.stderr.write(r.stderr);
+    if (r.status !== 0) fail('Open XML schema validation');
+  }
 } else if (requireAll) {
   fail('dotnet not found; cannot run the Open XML validator');
 } else {
