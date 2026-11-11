@@ -17,6 +17,8 @@ pnpm deckforge init-data fixtures/templates/ops-review.pptx -o out/ops.xlsx
 pnpm deckforge fill fixtures/templates/ops-review.pptx out/ops.xlsx -o out/ops.pptx
 ```
 
+**User docs:** [getting started](docs/user/getting-started.md) · [tagging guide](docs/user/tagging-guide.md) · [data layout](docs/user/data-layout.md) · [troubleshooting](docs/user/troubleshooting.md) · [template packs](template-packs/)
+
 ## Tagging a template
 
 - Text: type `{{name}}` anywhere in slide text. `{{name.previous}}`, `.change`, `.change_pct`
@@ -43,7 +45,11 @@ Full rules: [`docs/design-log/0003-lite-tagging-and-data-contract.md`](docs/desi
 | `apps/cli` | `deckforge slots | init-data | fill | batch | check` |
 | `tools/fixtures` | Synthetic fixture generator (`pnpm fixtures`) and output smoke test (`pnpm smoke`) |
 | `tools/ooxml-validate` | Open XML SDK schema validator (.NET) used by the smoke test |
-| `fixtures/templates` | Test templates |
+| `fixtures/templates` | Test templates (`ppt-*` built in real PowerPoint by `tools/powerpoint/build-templates.ps1`) |
+| `template-packs/` | The three template packs shipped to buyers (built by `tools/packs`) |
+| `apps/desktop` | Electron app (Lite) |
+| `apps/license-server` | Vendor backend: checkout webhook, key recovery, activation (never shipped) |
+| `packages/licensing` | Offline Ed25519 license keys |
 | `docs/design-log` | Design decisions |
 
 ## Development
