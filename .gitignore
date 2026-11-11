@@ -10,3 +10,6 @@ out/
 # .NET build output
 bin/
 obj/
+# build output (desktop app, CLI bundle)
+dist-electron/
+release/

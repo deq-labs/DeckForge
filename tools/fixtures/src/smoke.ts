@@ -5,8 +5,8 @@
  *   - check each output against the Open XML schemas (tools/ooxml-validate, needs the .NET SDK);
  *   - convert each output to PDF with LibreOffice (needs soffice).
  *
- * Run: pnpm smoke [--require-all]
- * With --require-all a missing tool is a failure (CI); otherwise that check is skipped.
+ * Run: pnpm smoke [--require-all | --require-validator]
+ * With --require-all a missing tool is a failure (CI); --require-validator only requires dotnet.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -19,6 +19,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const templatesDir = join(root, 'fixtures/templates');
 const outDir = join(root, 'out/smoke');
 const requireAll = process.argv.includes('--require-all');
+// CI fallback when LibreOffice can't be installed: the schema validator is still mandatory.
+const requireValidator = requireAll || process.argv.includes('--require-validator');
 
 function grow(d: DeckData): DeckData {
   const tables = Object.fromEntries(Object.entries(d.tables ?? {}).map(([k, t]) => [k, { ...t, rows: [...t.rows, ...t.rows, ...t.rows.slice(0, 1)] }]));
@@ -86,7 +88,7 @@ if (hasDotnet()) {
   const args = ['run', '--project', project, '-v', 'q', '--', ...outputs, '--baseline', ...templates.map((t) => join(templatesDir, t))];
   const r = spawnSync('dotnet', args, { encoding: 'utf8' });
   const blocked = /Application Control policy has blocked/.test(`${r.stdout}${r.stderr}`);
-  if (blocked && !requireAll) {
+  if (blocked && !requireValidator) {
     // Windows Smart App Control / WDAC can refuse locally built, unsigned assemblies. CI still validates.
     console.log('skip Open XML validation (Windows Application Control blocked the locally built validator)');
   } else {
@@ -94,7 +96,7 @@ if (hasDotnet()) {
     process.stderr.write(r.stderr);
     if (r.status !== 0) fail('Open XML schema validation');
   }
-} else if (requireAll) {
+} else if (requireValidator) {
   fail('dotnet not found; cannot run the Open XML validator');
 } else {
   console.log('skip Open XML validation (dotnet not found)');
