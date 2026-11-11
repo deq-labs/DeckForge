@@ -9,7 +9,7 @@
  *   pnpm ... admin list | revoke <id> | unrevoke <id> | activations <id> | free <id> <machine>
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { generateKeyPair } from '@deckforge/licensing';
 import { issueLicense } from './app.ts';
 import { LogMailer } from './mail.ts';
@@ -25,6 +25,14 @@ const fail = (msg: string): never => {
   process.exit(1);
 };
 
+/** True if `dir` (or the nearest existing parent) is inside a git working tree. */
+export function insideGitRepo(dir: string): boolean {
+  for (let d = resolve(dir); ; d = dirname(d)) {
+    if (existsSync(join(d, '.git'))) return true;
+    if (dirname(d) === d) return false;
+  }
+}
+
 function keyDir(): string {
   return process.env.DECKFORGE_KEY_DIR ?? fail('Set DECKFORGE_KEY_DIR to the folder with the key pair.');
 }
@@ -34,7 +42,7 @@ async function main(): Promise<void> {
     case 'keys': {
       const out = resolve(flag('out') ?? fail('Usage: admin keys --out <folder outside the repo>'));
       if (existsSync(join(out, 'deckforge-private.key'))) fail(`${out} already has a key pair. Refusing to overwrite it: keys already sold would stop working.`);
-      if (existsSync(join(process.cwd(), '.git')) && out.startsWith(process.cwd())) fail('Choose a folder outside the repository for the private key.');
+      if (insideGitRepo(out)) fail('Choose a folder outside any git repository for the private key, so it can never be committed.');
       mkdirSync(out, { recursive: true });
       const kp = await generateKeyPair();
       writeFileSync(join(out, 'deckforge-private.key'), `${kp.privateKey}\n`, { mode: 0o600 });
