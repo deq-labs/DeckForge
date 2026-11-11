@@ -316,8 +316,18 @@ $app = New-Object -ComObject PowerPoint.Application
 try {
   $app.DisplayAlerts = 1  # ppAlertsNone: never block on a dialog
   foreach ($name in $Only) {
-    Write-Host "building $name..."
-    & "Build-$name" $app
+    # Office automation occasionally drops the connection (RPC_E_DISCONNECTED); one retry is enough in practice.
+    for ($attempt = 1; $attempt -le 2; $attempt++) {
+      try {
+        Write-Host "building $name..."
+        & "Build-$name" $app
+        break
+      } catch {
+        if ($attempt -eq 2) { throw }
+        Write-Host "  retrying $name after: $($_.Exception.Message)"
+        foreach ($pres in @($app.Presentations)) { if ($pres.Path -eq '') { $pres.Saved = $TRUE_; $pres.Close() } }
+      }
+    }
   }
 } finally {
   foreach ($pres in @($app.Presentations)) { $pres.Saved = $TRUE_; $pres.Close() }

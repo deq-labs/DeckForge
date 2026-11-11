@@ -45,7 +45,7 @@ export function summarizeSlots(m: Manifest): SlotView[] {
     slots.push({ kind: 'text', name: t.name, where, detail: extra.length ? `also ${extra.map((f) => `.${f}`).join(' ')}` : 'kpis sheet', fillable: true });
   }
   for (const t of m.tables) {
-    slots.push({ kind: 'table', name: t.name, where: `slide ${t.slide}`, detail: t.columns.join(' | '), fillable: !unsupported.has(t.name.toLowerCase()) });
+    slots.push({ kind: 'table', name: t.name, where: `slide ${t.slide}`, detail: t.columns.join(' | '), fillable: t.fillable && !unsupported.has(t.name.toLowerCase()) });
   }
   for (const c of m.charts) {
     const n = c.sample.series.length;

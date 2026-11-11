@@ -179,6 +179,7 @@ exports[`slot discovery > lists text tags, tables and charts with sample data 1`
         "Cause",
         "Minutes",
       ],
+      "fillable": true,
       "kind": "table",
       "name": "downtime",
       "sampleRows": [
