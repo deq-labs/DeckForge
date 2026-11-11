@@ -119,6 +119,8 @@ export interface TableSlot {
   columns: string[];
   /** Body rows as currently written in the template (useful as sample data). */
   sampleRows: string[][];
+  /** False when the table can't be filled (e.g. merged body cells); see the manifest issues. */
+  fillable: boolean;
 }
 
 export type ChartType = 'bar' | 'line' | 'area' | 'pie' | 'doughnut' | 'combo';

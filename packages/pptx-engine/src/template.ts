@@ -564,7 +564,7 @@ async function analyze(pkg: OpcPackage, opts: AnalyzeOptions): Promise<Analysis>
 
       if (tbl) {
         const t = readTable(tbl);
-        const loc: TableLoc = { slot: { kind: 'table', name, slide: n, columns: t.columns, sampleRows: t.sampleRows }, frame, tbl, problem: t.problem };
+        const loc: TableLoc = { slot: { kind: 'table', name, slide: n, columns: t.columns, sampleRows: t.sampleRows, fillable: !t.problem }, frame, tbl, problem: t.problem };
         tables.set(key, [...(tables.get(key) ?? []), loc]);
         if (t.problem) warn({ code: 'unsupported', slide: n, slot: name, message: `Table '${name}' on slide ${n} ${t.problem}.` });
       } else {

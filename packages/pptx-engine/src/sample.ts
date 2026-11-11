@@ -13,6 +13,7 @@ export function sampleData(manifest: Manifest): DeckData {
   }
   const tables: NonNullable<DeckData['tables']> = {};
   for (const t of manifest.tables) {
+    if (!t.fillable) continue;
     tables[t.name] = { columns: [...t.columns], rows: t.sampleRows.map((r) => [...r]) };
   }
   const charts: NonNullable<DeckData['charts']> = {};

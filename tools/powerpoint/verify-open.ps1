@@ -12,9 +12,12 @@
   Usage:
     powershell -ExecutionPolicy Bypass -File tools/powerpoint/verify-open.ps1 out/smoke/*.pptx [-Pdf]
 #>
+[CmdletBinding(PositionalBinding = $false)]
 param(
-  [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)][string[]]$Files,
+  [Parameter(Mandatory = $true, Position = 0, ValueFromRemainingArguments = $true)][string[]]$Files,
   [switch]$Pdf,
+  # Also export every slide as PNG into <deck>.slides/ (for eyeballing output).
+  [switch]$Png,
   [int]$TimeoutSeconds = 90
 )
 $ErrorActionPreference = 'Stop'
@@ -22,8 +25,8 @@ $ErrorActionPreference = 'Stop'
 $paths = foreach ($f in $Files) { Get-ChildItem -Path $f -File | ForEach-Object { $_.FullName } }
 $failed = 0
 foreach ($path in $paths) {
-  $job = Start-Job -ArgumentList $path, $Pdf.IsPresent {
-    param($path, $pdf)
+  $job = Start-Job -ArgumentList $path, $Pdf.IsPresent, $Png.IsPresent {
+    param($path, $pdf, $png)
     $app = New-Object -ComObject PowerPoint.Application
     $app.DisplayAlerts = 1  # ppAlertsNone
     # Open(FileName, ReadOnly, Untitled, WithWindow)
@@ -33,6 +36,12 @@ foreach ($path in $paths) {
       $charts = 0
       foreach ($s in $pres.Slides) { foreach ($sh in $s.Shapes) { if ($sh.HasChart) { $charts++; $null = $sh.Chart.SeriesCollection().Count } } }
       if ($pdf) { $pres.SaveAs(($path -replace '\.pptx$', '.powerpoint.pdf'), 32) }  # ppSaveAsPDF
+      if ($png) {
+        $dir = $path -replace '\.pptx$', '.slides'
+        New-Item -ItemType Directory -Force -Path $dir | Out-Null
+        $i = 1
+        foreach ($s in $pres.Slides) { $s.Export((Join-Path $dir "slide$i.png"), 'PNG', 1280, 720); $i++ }
+      }
       "$count slides, $charts charts"
     } finally {
       $pres.Close()

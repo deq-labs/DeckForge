@@ -75,6 +75,7 @@ export async function createWorkbook(manifest: Manifest, options: CreateOptions 
   autoWidth(kpis);
 
   for (const t of manifest.tables) {
+    if (!t.fillable) continue;
     const ws = wb.addWorksheet(t.name);
     header(ws, t.columns);
     if (sample) for (const r of t.sampleRows) ws.addRow(r.map(sampleCell));

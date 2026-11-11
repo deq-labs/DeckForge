@@ -212,8 +212,8 @@ Build the Lite track first, in phase order. The Services track starts as soon as
 
 #### L5 — Template packs and docs
 
-- [ ] Three packs (ops review, KPI scorecard, client monthly report), each with a sample workbook
-- [ ] Docs: tagging guide, data layout, troubleshooting; a 5-minute getting-started video
+- [x] Three packs (ops review, KPI scorecard, client monthly report), each with a sample workbook — `template-packs/`
+- [ ] Docs: tagging guide, data layout, troubleshooting; a 5-minute getting-started video — docs in `docs/user/`; video script ready (`docs/user/video-script.md`), recording needed
 - [ ] A new user goes from download to first deck in under 30 minutes (test with two people who aren't you)
 
 #### L6 — Launch
