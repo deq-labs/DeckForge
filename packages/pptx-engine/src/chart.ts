@@ -3,7 +3,18 @@ import { NS, child, children, create, descendants, path, removeChildren, removeN
 import type { Document, Element } from './xml.ts';
 import type { ChartData, ChartType } from './types.ts';
 
-const SUPPORTED: Record<string, ChartType> = { barChart: 'bar', lineChart: 'line' };
+/** Chart groups DeckForge can fill; all share the category/value series structure. */
+const SUPPORTED: Record<string, Exclude<ChartType, 'combo'>> = {
+  barChart: 'bar',
+  bar3DChart: 'bar',
+  lineChart: 'line',
+  line3DChart: 'line',
+  areaChart: 'area',
+  area3DChart: 'area',
+  pieChart: 'pie',
+  pie3DChart: 'pie',
+  doughnutChart: 'doughnut',
+};
 
 const TYPE_LABELS: Record<string, string> = {
   bar3DChart: '3-D bar',
@@ -30,6 +41,8 @@ export interface ChartInfo {
   /** Worksheet name used in the series formulas (`Sheet1` in most templates). */
   sheetName: string;
   seriesCount: number;
+  /** Fewest series the data may have: a combo must keep every chart group non-empty. */
+  minSeries: number;
 }
 
 function plotArea(doc: Document): Element | undefined {
@@ -40,9 +53,11 @@ function typeElements(pa: Element): Element[] {
   return children(pa, NS.c).filter((e) => (e.localName ?? '').endsWith('Chart'));
 }
 
-function seriesOf(typeEl: Element): Element[] {
-  const order = (ser: Element): number => Number(child(ser, NS.c, 'order')?.getAttribute('val') ?? '0');
-  return children(typeEl, NS.c, 'ser').sort((a, b) => order(a) - order(b));
+const orderOf = (ser: Element): number => Number(child(ser, NS.c, 'order')?.getAttribute('val') ?? '0');
+
+/** Every series across all chart groups, in the chart's series order. */
+function allSeries(groups: Element[]): Element[] {
+  return groups.flatMap((g) => children(g, NS.c, 'ser')).sort((a, b) => orderOf(a) - orderOf(b));
 }
 
 /** The point cache inside a `c:tx`, `c:cat` or `c:val` element. */
@@ -91,7 +106,7 @@ function formulaOf(container: Element | undefined): string | undefined {
 }
 
 export function inspectChart(doc: Document): ChartInfo {
-  const info: ChartInfo = { chartType: undefined, sample: { categories: [], series: [] }, sheetName: 'Sheet1', seriesCount: 0 };
+  const info: ChartInfo = { chartType: undefined, sample: { categories: [], series: [] }, sheetName: 'Sheet1', seriesCount: 0, minSeries: 1 };
   const pa = plotArea(doc);
   const types = pa ? typeElements(pa) : [];
   const first = types[0];
@@ -100,7 +115,7 @@ export function inspectChart(doc: Document): ChartInfo {
     return info;
   }
 
-  const sers = seriesOf(first);
+  const sers = allSeries(types);
   info.seriesCount = sers.length;
   const firstSer = sers[0];
   if (firstSer) {
@@ -115,22 +130,24 @@ export function inspectChart(doc: Document): ChartInfo {
     return { name, values };
   });
 
-  if (types.length > 1) {
-    info.problem = 'combines more than one chart type (a combo chart). Combo charts are not supported yet; use a plain bar, column or line chart';
-    return info;
-  }
-  const local = first.localName ?? '';
-  const type = SUPPORTED[local];
-  if (!type) {
+  const bad = types.find((g) => !SUPPORTED[g.localName ?? '']);
+  if (bad) {
+    const local = bad.localName ?? '';
     const label = TYPE_LABELS[local] ?? local.replace(/Chart$/, '');
-    info.problem = `is a ${label} chart. DeckForge Lite can fill bar, column and line charts for now; change the chart type in PowerPoint`;
+    info.problem =
+      (types.length > 1 ? `contains a ${label} chart part` : `is a ${label} chart`) +
+      '. DeckForge can fill bar, column, line, area, pie and doughnut charts (and combinations of them); change the chart type in PowerPoint';
     return info;
   }
   if (sers.length === 0) {
     info.problem = 'has no data series. Add at least one series in PowerPoint (Chart Design > Edit Data)';
     return info;
   }
-  info.chartType = type;
+  const kinds = new Set(types.map((g) => SUPPORTED[g.localName ?? '']!));
+  info.chartType = types.length > 1 ? 'combo' : [...kinds][0]!;
+  // Each group's first series must survive trimming, so the data needs at least up to the last of those.
+  const filled = types.filter((g) => children(g, NS.c, 'ser').length > 0);
+  info.minSeries = Math.max(1, ...filled.map((g) => Math.min(...children(g, NS.c, 'ser').map((s) => sers.indexOf(s))) + 1));
   return info;
 }
 
@@ -209,8 +226,7 @@ function pruneByIdx(parent: Element, local: string, count: number): void {
  * `categories` are pre-rendered strings. Returns each series' number format code.
  */
 export function fillChart(doc: Document, info: ChartInfo, categories: string[], data: ChartData): string[] {
-  const typeEl = typeElements(plotArea(doc)!)[0]!;
-  const sers = seriesOf(typeEl);
+  const sers = allSeries(typeElements(plotArea(doc)!));
   for (const extra of sers.slice(data.series.length)) removeNode(extra);
 
   const n = categories.length;

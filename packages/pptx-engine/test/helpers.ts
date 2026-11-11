@@ -37,9 +37,14 @@ function paragraphText(p: Element): string {
 /** Text of every paragraph on every slide, in order: `["1: Title", "2: OEE: 85%", ...]`. */
 export async function slideTexts(bytes: Uint8Array): Promise<string[]> {
   const zip = await unzip(bytes);
-  const slides = Object.keys(zip.files)
-    .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
-    .sort((a, b) => Number(/(\d+)\.xml$/.exec(a)![1]) - Number(/(\d+)\.xml$/.exec(b)![1]));
+  // Presentation order (sldIdLst), not file-name order: copied slides get new file names.
+  const pres = await partXml(zip, 'ppt/presentation.xml');
+  const rels = await partXml(zip, 'ppt/_rels/presentation.xml.rels');
+  const targets = new Map(Array.from(rels.getElementsByTagName('Relationship')).map((r) => [r.getAttribute('Id'), r.getAttribute('Target') ?? '']));
+  const slides = Array.from(pres.getElementsByTagNameNS(NS.p, 'sldId')).map((el) => {
+    const t = targets.get(el.getAttributeNS(NS.r, 'id'))!;
+    return t.startsWith('/') ? t.slice(1) : `ppt/${t}`;
+  });
   const out: string[] = [];
   for (const [i, path] of slides.entries()) {
     const doc = await partXml(zip, path);

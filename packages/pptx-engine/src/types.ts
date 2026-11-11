@@ -30,11 +30,16 @@ export interface ChartData {
   series: ChartSeries[];
 }
 
+/** One row of a repeat source: tag name -> value. */
+export type RowRecord = Record<string, ValueEntry | Scalar>;
+
 /** Everything needed to fill one deck. Keys are slot names, matched case-insensitively. */
 export interface DeckData {
   values?: Record<string, ValueEntry | Scalar>;
   tables?: Record<string, TableData>;
   charts?: Record<string, ChartData>;
+  /** Row sets for `#repeat <name>` slides. */
+  rows?: Record<string, RowRecord[]>;
 }
 
 export type OnMissing = 'error' | 'keep' | 'blank';
@@ -59,7 +64,11 @@ export type IssueCode =
   | 'table-columns'
   | 'chart-series'
   | 'unused-data'
-  | 'data-layout';
+  | 'data-layout'
+  | 'missing-rows'
+  | 'slide-rule'
+  | 'misplaced-tag'
+  | 'overflow';
 
 export interface Issue {
   severity: 'error' | 'warning';
@@ -81,7 +90,24 @@ export interface TextSlot {
   name: string;
   /** Fields used anywhere in the deck, e.g. `value` for `{{oee}}`, `previous` for `{{oee.previous}}`. */
   fields: TextField[];
+  /** Slides that use the tag (template numbering), excluding repeated slides. */
   slides: number[];
+  /** Names of slide layouts/masters that use the tag. */
+  layouts: string[];
+}
+
+/** A `#repeat <name>` source: the slides it copies and the tags those slides use. */
+export interface RepeatSlot {
+  kind: 'repeat';
+  name: string;
+  slides: number[];
+  tags: { name: string; fields: TextField[] }[];
+}
+
+export interface SlideRule {
+  slide: number;
+  kind: 'repeat' | 'show-if' | 'hide-if';
+  target: string;
 }
 
 export interface TableSlot {
@@ -93,7 +119,7 @@ export interface TableSlot {
   sampleRows: string[][];
 }
 
-export type ChartType = 'bar' | 'line';
+export type ChartType = 'bar' | 'line' | 'area' | 'pie' | 'doughnut' | 'combo';
 
 export interface ChartSlot {
   kind: 'chart';
@@ -105,13 +131,17 @@ export interface ChartSlot {
   sample: ChartData;
 }
 
-export type Slot = TextSlot | TableSlot | ChartSlot;
+export type Slot = TextSlot | TableSlot | ChartSlot | RepeatSlot;
 
 export interface Manifest {
   slideCount: number;
   text: TextSlot[];
   tables: TableSlot[];
   charts: ChartSlot[];
+  repeats: RepeatSlot[];
+  rules: SlideRule[];
+  /** Slide height in EMU, for overflow checks. */
+  slideHeight: number;
   /** Problems found in the template itself (bad tag names, unsupported parts). */
   issues: Issue[];
 }

@@ -1,4 +1,4 @@
-import type { DeckData, Manifest, ValueEntry } from './types.ts';
+import type { DeckData, Manifest, RowRecord, ValueEntry } from './types.ts';
 
 /**
  * Data that fills every slot of a template with what the template already shows
@@ -23,5 +23,16 @@ export function sampleData(manifest: Manifest): DeckData {
       series: c.sample.series.map((s) => ({ name: s.name, values: [...s.values] })),
     };
   }
-  return { values, tables, charts };
+  const rows: Record<string, RowRecord[]> = {};
+  for (const r of manifest.repeats) {
+    rows[r.name] = [1, 2].map((n) => {
+      const rec: RowRecord = {};
+      for (const t of r.tags) {
+        const numeric = t.fields.some((f) => f !== 'value');
+        rec[t.name] = numeric ? { value: 110 * n, previous: 100 } : `[${t.name} ${n}]`;
+      }
+      return rec;
+    });
+  }
+  return { values, tables, charts, rows };
 }

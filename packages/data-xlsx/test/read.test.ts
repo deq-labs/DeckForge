@@ -63,7 +63,9 @@ describe('readWorkbook', () => {
       wb.addWorksheet('_notes').addRow(['ignored']);
     });
 
-    const { data, issues } = await readWorkbook(bytes, await opsManifest());
+    const { decks, issues } = await readWorkbook(bytes, await opsManifest());
+    expect(decks).toHaveLength(1);
+    const data = decks[0]!.data;
     expect(data.values).toEqual({
       oee: { value: 0.853, previous: 0.81, format: 'percent:1' },
       downtime_total: { value: 1234.5, format: 'number:0' },
@@ -106,8 +108,6 @@ describe('readWorkbook', () => {
       c.addRow(['Month', 'OEE']);
       c.addRow(['Jan', 'n/a']);
       wb.addWorksheet('scrap').addRow(['x']);
-      const b = wb.addWorksheet('downtime');
-      b.addRow(['Line', 'batch']);
     });
     const { issues } = await readWorkbook(bytes, await opsManifest());
     expect(issues.map((i) => `${i.severity}: ${i.message}`)).toEqual([
@@ -115,9 +115,8 @@ describe('readWorkbook', () => {
       `warning: "bad key" (sheet 'kpis' row 3) is not a valid tag name, so no tag can use it. Use letters, digits, _ and - only, no spaces.`,
       `error: Sheet 'kpis' cell B4 has a formula with no saved result. Open the workbook in Excel, save it, and try again.`,
       `error: "OEE" appears twice (sheet 'kpis' row 2 and sheet 'meta' row 2). Keep only one row for it.`,
-      `error: Sheet 'downtime' has a "batch" column. Batch decks (one deck per value) are not available yet; remove the column for now.`,
       `error: Sheet 'oee_trend' cell B2 should be a number but contains "n/a".`,
-      `warning: Sheet 'scrap' does not match any table or chart in the template, so it is ignored. Tables and charts in this template: downtime, downtime_by_line, oee_trend.`,
+      `warning: Sheet 'scrap' does not match any table, chart or repeated slide in the template, so it is ignored. Sheets this template uses: downtime, downtime_by_line, oee_trend.`,
     ]);
   });
 
@@ -145,7 +144,8 @@ describe('createWorkbook → readWorkbook → fill', () => {
     });
     const filled = new Uint8Array((await wb.xlsx.writeBuffer()) as ArrayBuffer);
 
-    const { data, issues, blankKeys } = await readWorkbook(filled, manifest);
+    const { decks, issues, blankKeys } = await readWorkbook(filled, manifest);
+    const data = decks[0]!.data;
     expect(blankKeys).toEqual([]);
     expect(issues).toEqual([]);
     expect(data.tables!.downtime!.rows).toEqual([

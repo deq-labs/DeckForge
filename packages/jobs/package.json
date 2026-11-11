@@ -1,0 +1,21 @@
+{
+  "name": "@deckforge/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure orchestration shared by the CLI and desktop app: check, fill, batch, with fix-it hints.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@deckforge/data-xlsx": "workspace:*",
+    "@deckforge/pptx-engine": "workspace:*"
+  },
+  "devDependencies": {
+    "exceljs": "^4.4.0"
+  }
+}

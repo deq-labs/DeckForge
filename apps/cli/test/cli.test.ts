@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import ExcelJS from 'exceljs';
 import { Template } from '@deckforge/pptx-engine';
-import { fill, initData, slots } from '../src/commands.ts';
+import { batch, check, fill, initData, slots } from '../src/commands.ts';
 import { UserError } from '../src/files.ts';
 import type { Io } from '../src/report.ts';
 
@@ -78,5 +78,43 @@ describe('deckforge CLI', () => {
   it('explains missing and wrong input files', async () => {
     await expect(fill(p('nope.pptx'), p('x.xlsx'), {}, io)).rejects.toThrow(/Cannot find the template/);
     await expect(fill(p('ops.pptx'), p('ops.pptx'), { output: p('o.pptx') }, io)).rejects.toThrow(/not an Excel workbook/);
+  });
+});
+
+describe('deckforge batch / check', () => {
+  async function batchWorkbook(file: string): Promise<void> {
+    await initData(p('ops.pptx'), { output: file }, io);
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(file);
+    const k = wb.getWorksheet('kpis')!;
+    k.getCell(1, 6).value = 'batch';
+    k.eachRow((row, n) => {
+      if (n > 1) row.getCell(2).value = `v${n}`;
+    });
+    k.addRow(['site', 'Plant B', null, null, null, 'B']);
+    k.getRow(3).getCell(6).value = 'A'; // the existing "site" row belongs to batch A
+    await wb.xlsx.writeFile(file);
+  }
+
+  it('writes one deck per batch value', async () => {
+    await batchWorkbook(p('b.xlsx'));
+    expect(await batch(p('ops.pptx'), p('b.xlsx'), { outDir: p('out') }, io)).toBe(0);
+    expect(existsSync(p('out/ops-A.pptx'))).toBe(true);
+    expect(existsSync(p('out/ops-B.pptx'))).toBe(true);
+    expect(text()).toContain('Wrote 2 decks');
+  });
+
+  it('fill refuses a batched workbook and points to batch', async () => {
+    await batchWorkbook(p('b.xlsx'));
+    await expect(fill(p('ops.pptx'), p('b.xlsx'), {}, io)).rejects.toThrow(/deckforge batch/);
+  });
+
+  it('check reports readiness without writing files', async () => {
+    expect(await check(p('ops.pptx'), undefined, {}, io)).toBe(0);
+    expect(text()).toContain('ops.pptx: ready (0 errors, 0 warnings).');
+    await batchWorkbook(p('b.xlsx'));
+    expect(await check(p('ops.pptx'), p('b.xlsx'), {}, io)).toBe(0);
+    expect(text()).toContain('ready (0 errors, 0 warnings; 2 decks would be made)');
+    expect(existsSync(p('ops-decks'))).toBe(false);
   });
 });
