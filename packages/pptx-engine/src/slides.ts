@@ -1,7 +1,7 @@
 /** Slide-level package operations: list, duplicate, delete. See design-log 0005. */
 import type { OpcPackage } from './opc.ts';
-import { NS, REL, children, descendants, removeNode } from './xml.ts';
-import type { Element } from './xml.ts';
+import { NS, REL, children, descendants, parseXml, removeNode } from './xml.ts';
+import type { Document, Element } from './xml.ts';
 
 export const REL_NOTES = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide';
 const NS_P14 = 'http://schemas.microsoft.com/office/powerpoint/2010/main';
@@ -106,6 +106,30 @@ async function deepClone(pkg: OpcPackage, partPath: string): Promise<string> {
   }
   if (rels.length) pkg.writeRels(copy, rels);
   return copy;
+}
+
+const EMU_PER_INCH = 914400;
+
+/**
+ * Adds a small grey text box in the bottom-right corner of a slide (trial watermark).
+ * Its name contains spaces, so it is never mistaken for a slot.
+ */
+export function addWatermark(slide: Document, text: string, slideWidth: number, slideHeight: number): void {
+  const tree = descendants(slide, NS.p, 'spTree')[0];
+  if (!tree) return;
+  const maxId = Math.max(1, ...descendants(slide, NS.p, 'cNvPr').map((e) => Number(e.getAttribute('id')) || 0));
+  const w = Math.round(3 * EMU_PER_INCH);
+  const h = Math.round(0.25 * EMU_PER_INCH);
+  const x = slideWidth - w - Math.round(0.15 * EMU_PER_INCH);
+  const y = slideHeight - h - Math.round(0.08 * EMU_PER_INCH);
+  const esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const xml =
+    `<p:sp xmlns:p="${NS.p}" xmlns:a="${NS.a}"><p:nvSpPr><p:cNvPr id="${maxId + 1}" name="DeckForge Watermark"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>` +
+    `<p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>` +
+    `<p:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="b"/><a:lstStyle/><a:p><a:pPr algn="r"/>` +
+    `<a:r><a:rPr lang="en-US" sz="900" dirty="0"><a:solidFill><a:srgbClr val="808080"/></a:solidFill></a:rPr><a:t>${esc}</a:t></a:r></a:p></p:txBody></p:sp>`;
+  const sp = parseXml(xml, 'watermark').documentElement!;
+  tree.appendChild(slide.importNode(sp, true));
 }
 
 /** Removes a slide from the presentation. Its parts are dropped by `collectGarbage`. */

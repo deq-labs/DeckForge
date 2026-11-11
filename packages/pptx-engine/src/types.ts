@@ -51,6 +51,8 @@ export interface FillOptions {
   currency?: string;
   /** What to do when a tag has no data. Default `error`. */
   onMissing?: OnMissing;
+  /** If set, this text is added in small grey type to the bottom-right of every slide (trial mode). */
+  watermark?: string;
 }
 
 export type IssueCode =

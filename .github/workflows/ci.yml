@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Type-checking and bundling the desktop app don't need the Electron binary.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -30,6 +34,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Build desktop app (renderer + main/preload bundles)
+        run: pnpm --filter @deckforge/desktop build
 
   smoke:
     name: output opens in LibreOffice and passes Open XML validation
