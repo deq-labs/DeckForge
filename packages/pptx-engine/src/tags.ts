@@ -141,6 +141,46 @@ export function writeRunText(run: Element, t: Element, text: string): void {
   }
 }
 
+/** A paragraph's text split into lines at line breaks (`a:br`, or newlines inside the text). */
+export function paragraphLines(p: Element): string[] {
+  let s = '';
+  for (const el of children(p)) {
+    if (is(el, NS.a, 'r') || is(el, NS.a, 'fld')) s += textOf(child(el, NS.a, 't') ?? el);
+    else if (is(el, NS.a, 'br')) s += '\n';
+  }
+  return s.split(/\r\n|\r|\n|\v/);
+}
+
+/**
+ * Removes the lines `drop` matches from a paragraph. The paragraph is removed if nothing but
+ * blank lines remains; otherwise the kept lines are rewritten with the first run's formatting.
+ */
+export function removeLines(p: Element, drop: (line: string) => boolean): void {
+  const lines = paragraphLines(p);
+  const keep = lines.filter((l) => !drop(l));
+  if (keep.length === lines.length) return;
+  const firstRun = child(p, NS.a, 'r');
+  const rPr = firstRun ? child(firstRun, NS.a, 'rPr') : undefined;
+  const endPr = child(p, NS.a, 'endParaRPr');
+  if (keep.every((l) => l.trim() === '')) {
+    // A text body must keep at least one paragraph, so the last one is emptied rather than removed.
+    const siblings = p.parentNode ? children(p.parentNode as Element, NS.a, 'p') : [];
+    if (siblings.length > 1) {
+      removeNode(p);
+      return;
+    }
+    for (const el of children(p)) if (!is(el, NS.a, 'pPr') && !is(el, NS.a, 'endParaRPr')) removeNode(el);
+    return;
+  }
+  for (const el of children(p)) if (!is(el, NS.a, 'pPr') && !is(el, NS.a, 'endParaRPr')) removeNode(el);
+  const r = create(p, NS.a, 'r');
+  if (rPr) r.appendChild(rPr.cloneNode(true));
+  const t = create(p, NS.a, 't');
+  r.appendChild(t);
+  p.insertBefore(r, endPr ?? null);
+  writeRunText(r, t, keep.join('\n'));
+}
+
 function insertAfter(node: Element, ref: Element): void {
   ref.parentNode!.insertBefore(node, ref.nextSibling);
 }

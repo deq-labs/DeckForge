@@ -102,9 +102,85 @@ function opsReview(): Pres {
   return pres;
 }
 
+/** L2 features: pie/doughnut/combo charts, #repeat, #show-if/#hide-if, notes and master tags. */
+function l2Features(): Pres {
+  const pres = newPres('l2-features');
+  pres.defineSlideMaster({
+    title: 'BRANDED',
+    objects: [
+      { text: { text: '{{company}} confidential', options: { x: 0.3, y: 5.2, w: 5, h: 0.3, fontSize: 9, color: '777777' } } },
+      { placeholder: { options: { name: 'body', type: 'body', x: 0.5, y: 1.2, w: 9, h: 3.5 }, text: '{{never_shown}}' } },
+    ],
+  });
+
+  const s1 = pres.addSlide({ masterName: 'BRANDED' });
+  s1.addText('{{title}}', { x: 0.5, y: 0.3, w: 9, h: 0.8, fontSize: 30, bold: true });
+  s1.addNotes('Presenter: {{presenter}}');
+
+  // Repeated once per row of the "sites" sheet; tags come from the row.
+  const s2 = pres.addSlide({ masterName: 'BRANDED' });
+  s2.addText('{{site}}', { x: 0.5, y: 0.3, w: 9, h: 0.8, fontSize: 28, bold: true });
+  s2.addText('OEE {{oee}} ({{oee.trend}}) · Manager: {{manager}}', { x: 0.5, y: 1.2, w: 9, h: 0.5, fontSize: 18 });
+  s2.addChart(
+    pres.ChartType.pie,
+    [{ name: 'Downtime', labels: ['Planned', 'Unplanned'], values: [30, 70] }],
+    { x: 0.5, y: 1.9, w: 4.5, h: 3, showLegend: true, legendPos: 'b', objectName: 'site_downtime', showTitle: true, title: '{{site}} downtime' },
+  );
+  s2.addNotes('#repeat sites\nOne slide per site.');
+
+  const s3 = pres.addSlide({ masterName: 'BRANDED' });
+  s3.addText('Scrap by cause', { x: 0.5, y: 0.3, w: 9, h: 0.6, fontSize: 24, bold: true });
+  s3.addChart(
+    pres.ChartType.doughnut,
+    [{ name: 'Scrap', labels: ['Setup', 'Material', 'Other'], values: [5, 3, 2] }],
+    { x: 0.5, y: 1.1, w: 4.4, h: 3.8, showLegend: true, legendPos: 'b', objectName: 'scrap_share' },
+  );
+  // Combo charts: pptxgenjs takes (types, options) at runtime, unlike its typings.
+  (s3.addChart as unknown as (types: unknown, opts: unknown) => void)(
+    [
+      { type: pres.ChartType.bar, data: [{ name: 'Volume', labels: ['Jul', 'Aug', 'Sep'], values: [120, 134, 128] }], options: { barDir: 'col' } },
+      { type: pres.ChartType.line, data: [{ name: 'Yield', labels: ['Jul', 'Aug', 'Sep'], values: [0.96, 0.95, 0.97] }], options: { secondaryValAxis: true, secondaryCatAxis: true } },
+    ],
+    { x: 5.1, y: 1.1, w: 4.4, h: 3.8, showLegend: true, legendPos: 'b', objectName: 'volume_yield', valAxes: [{ showValAxisTitle: false }, { showValAxisTitle: false, valGridLine: { style: 'none' } }], catAxes: [{ catAxisTitle: '' }, { catAxisHidden: true }] },
+  );
+
+  const s4 = pres.addSlide({ masterName: 'BRANDED' });
+  s4.addText('Safety incidents: {{incidents}}', { x: 0.5, y: 0.3, w: 9, h: 0.8, fontSize: 24, bold: true });
+  s4.addNotes('#show-if incidents');
+
+  const s5 = pres.addSlide({ masterName: 'BRANDED' });
+  s5.addText('Appendix', { x: 0.5, y: 0.3, w: 9, h: 0.8, fontSize: 24, bold: true });
+  s5.addNotes('#hide-if skip_appendix\n#showif typo');
+  return pres;
+}
+
+/** 30 slides of text, tables and charts, for the "30-slide deck in under 5 seconds" target. */
+function perf30(): Pres {
+  const pres = newPres('perf-30');
+  for (let i = 1; i <= 30; i++) {
+    const s = pres.addSlide();
+    s.addText(`Slide ${i}: {{title}} · {{kpi_${i}}} ({{kpi_${i}.trend}})`, { x: 0.5, y: 0.2, w: 9, h: 0.5, fontSize: 18 });
+    if (i % 3 === 1) {
+      s.addTable(
+        [['Item', 'Value'].map((t) => ({ text: t })), ...[1, 2, 3].map((r) => [{ text: `Row ${r}` }, { text: String(r) }])],
+        { x: 0.5, y: 0.9, w: 9, colW: [6, 3], rowH: 0.3, fontSize: 10, objectName: `table_${i}` },
+      );
+    } else {
+      s.addChart(
+        i % 3 === 2 ? pres.ChartType.bar : pres.ChartType.line,
+        [{ name: 'Series', labels: ['A', 'B', 'C'], values: [1, 2, 3] }],
+        { x: 0.5, y: 0.9, w: 9, h: 4.3, objectName: `chart_${i}` },
+      );
+    }
+  }
+  return pres;
+}
+
 const fixtures: Record<string, () => Pres> = {
   'text-basic': textBasic,
   'ops-review': opsReview,
+  'l2-features': l2Features,
+  'perf-30': perf30,
 };
 
 mkdirSync(outDir, { recursive: true });

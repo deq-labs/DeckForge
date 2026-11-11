@@ -38,11 +38,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/pptx-engine/**', 'packages/data-xlsx/**', 'packages/licensing/**', 'apps/cli/**', 'apps/desktop/**', 'tools/**'],
+    files: ['packages/pptx-engine/**', 'packages/data-xlsx/**', 'packages/jobs/**', 'packages/licensing/**', 'apps/cli/**', 'apps/desktop/**', 'tools/**'],
     rules: { 'no-restricted-imports': ['error', noPro] },
   },
   {
-    files: ['packages/pptx-engine/src/**', 'packages/data-xlsx/src/**'],
+    files: ['packages/pptx-engine/src/**', 'packages/data-xlsx/src/**', 'packages/jobs/src/**'],
     rules: {
       'no-restricted-imports': ['error', {
         paths: [

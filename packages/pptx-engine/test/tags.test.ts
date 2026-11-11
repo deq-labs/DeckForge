@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { findTags, parseTag, replaceTags } from '../src/tags.ts';
+import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
+import type { Element } from '@xmldom/xmldom';
+import { findTags, parseTag, removeLines, replaceTags } from '../src/tags.ts';
+import { NS } from '../src/xml.ts';
 import { paragraph, serialize } from './helpers.ts';
 
 const r = (text: string, color?: string): string =>
@@ -79,5 +82,25 @@ describe('replaceTags', () => {
     const p = paragraph(r('{{site}}'));
     replaceTags(p, () => 'R&D <east>');
     expect(serialize(p)).toContain('<a:t>R&amp;D &lt;east&gt;</a:t>');
+  });
+});
+
+describe('removeLines', () => {
+  it('drops matching lines split by breaks or newlines', () => {
+    const p = paragraph(r('#repeat sites') + '<a:br/>' + r('Keep me'));
+    removeLines(p, (l) => l.startsWith('#'));
+    expect(serialize(p)).toBe('<a:p><a:r><a:rPr/><a:t>Keep me</a:t></a:r></a:p>');
+  });
+
+  it('empties, but keeps, the only paragraph of a text body', () => {
+    const body = new DOMParser().parseFromString(`<a:txBody xmlns:a="${NS.a}"><a:p>${r('#repeat x')}<a:endParaRPr/></a:p></a:txBody>`, 'text/xml').documentElement!;
+    removeLines(body.firstChild as Element, (l) => l.startsWith('#'));
+    expect(new XMLSerializer().serializeToString(body)).toBe(`<a:txBody xmlns:a="${NS.a}"><a:p><a:endParaRPr/></a:p></a:txBody>`);
+  });
+
+  it('removes a directive-only paragraph when others remain', () => {
+    const body = new DOMParser().parseFromString(`<a:txBody xmlns:a="${NS.a}"><a:p>${r('#hide-if x')}</a:p><a:p>${r('Note')}</a:p></a:txBody>`, 'text/xml').documentElement!;
+    removeLines(body.firstChild as Element, (l) => l.startsWith('#'));
+    expect(body.getElementsByTagNameNS(NS.a, 'p').length).toBe(1);
   });
 });

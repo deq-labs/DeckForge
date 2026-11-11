@@ -192,10 +192,10 @@ Build the Lite track first, in phase order. The Services track starts as soon as
 
 #### L2 — Engine complete
 
-- [ ] Pie and combo charts, trend arrows, number formats
-- [ ] Repeat-per-row slides, skip rules, batch mode (one deck per `batch` value)
-- [ ] Template checker with plain-language errors ("Chart 'downtime' has 3 series in the template but 4 columns in the sheet")
-- [ ] A 30-slide deck in under 5 seconds; fuzz tests on data sizes
+- [x] Pie and combo charts, trend arrows, number formats (also doughnut, area and 3-D variants)
+- [x] Repeat-per-row slides, skip rules, batch mode (one deck per `batch` value) — see design-log 0005
+- [x] Template checker with plain-language errors ("Chart 'downtime' has 3 series in the template but 4 columns in the sheet")
+- [x] A 30-slide deck in under 5 seconds; fuzz tests on data sizes
 
 #### L3 — Desktop app
 

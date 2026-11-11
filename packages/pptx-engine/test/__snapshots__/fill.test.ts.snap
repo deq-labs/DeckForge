@@ -168,7 +168,10 @@ exports[`slot discovery > lists text tags, tables and charts with sample data 1`
     },
   ],
   "issues": [],
+  "repeats": [],
+  "rules": [],
   "slideCount": 4,
+  "slideHeight": 5143500,
   "tables": [
     {
       "columns": [
@@ -199,6 +202,7 @@ exports[`slot discovery > lists text tags, tables and charts with sample data 1`
         "value",
       ],
       "kind": "text",
+      "layouts": [],
       "name": "title",
       "slides": [
         1,
@@ -209,6 +213,7 @@ exports[`slot discovery > lists text tags, tables and charts with sample data 1`
         "value",
       ],
       "kind": "text",
+      "layouts": [],
       "name": "site",
       "slides": [
         1,
@@ -219,6 +224,7 @@ exports[`slot discovery > lists text tags, tables and charts with sample data 1`
         "value",
       ],
       "kind": "text",
+      "layouts": [],
       "name": "period_end",
       "slides": [
         1,
@@ -229,6 +235,7 @@ exports[`slot discovery > lists text tags, tables and charts with sample data 1`
         "value",
       ],
       "kind": "text",
+      "layouts": [],
       "name": "downtime_total",
       "slides": [
         2,

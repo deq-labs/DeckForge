@@ -28,6 +28,13 @@ const README = [
   'One sheet per chart, named like the chart.',
   '  Column A holds the categories (x axis), columns B onward one series each, names in row 1.',
   '',
+  'One sheet per repeated slide (a slide whose speaker notes say #repeat <sheet>).',
+  '  One row per copy of the slide; each column header is a tag name ("Plant Manager" fills {{plant_manager}}).',
+  '  A column named "<tag> previous" feeds {{tag.previous}} and the trend fields.',
+  '',
+  'Batch decks: add a column named batch to any sheet. Each distinct value makes its own deck with',
+  '  the rows for that value plus the rows whose batch cell is empty (shared by every deck).',
+  '',
   'Sheets whose names start with _ (like this one) are ignored.',
 ];
 
@@ -61,7 +68,8 @@ export async function createWorkbook(manifest: Manifest, options: CreateOptions 
   header(kpis, ['key', 'value', 'previous', 'format', 'notes']);
   for (const t of manifest.text) {
     const extra = t.fields.filter((f) => f !== 'value').map((f) => `.${f}`);
-    const note = `slide ${t.slides.join(', ')}${extra.length ? `; uses ${extra.join(', ')} (fill in previous)` : ''}`;
+    const where = [...(t.slides.length ? [`slide ${t.slides.join(', ')}`] : []), ...t.layouts.map((l) => `layout '${l}'`)].join('; ');
+    const note = `${where}${extra.length ? `; uses ${extra.join(', ')} (fill in previous)` : ''}`;
     kpis.addRow([t.name, null, null, null, note]);
   }
   autoWidth(kpis);
@@ -80,6 +88,17 @@ export async function createWorkbook(manifest: Manifest, options: CreateOptions 
     if (sample) {
       c.sample.categories.forEach((cat, i) => ws.addRow([cat, ...c.sample.series.map((s) => s.values[i] ?? null)]));
     }
+    autoWidth(ws);
+  }
+
+  for (const r of manifest.repeats) {
+    const ws = wb.addWorksheet(r.name);
+    const cols: string[] = [];
+    for (const t of r.tags) {
+      cols.push(t.name);
+      if (t.fields.some((f) => f !== 'value')) cols.push(`${t.name} previous`);
+    }
+    header(ws, cols);
     autoWidth(ws);
   }
 
