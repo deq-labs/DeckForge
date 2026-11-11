@@ -15,5 +15,8 @@
     "@deckforge/data-xlsx": "workspace:*",
     "@deckforge/pptx-engine": "workspace:*",
     "commander": "^15.1.0"
+  },
+  "devDependencies": {
+    "exceljs": "^4.4.0"
   }
 }

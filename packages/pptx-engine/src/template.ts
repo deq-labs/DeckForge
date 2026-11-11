@@ -183,7 +183,23 @@ export class Template {
         });
         continue;
       }
-      const rows = td.rows.map((r) => r.map((v) => formatScalar(v, undefined, ctx)));
+      const rows: string[][] = [];
+      let badCell: string | undefined;
+      for (const r of td.rows) {
+        rows.push(r.map((cell) => {
+          const e = normalizeEntry(cell)!;
+          const problem = validateFormat(e.format);
+          if (problem) {
+            badCell ??= problem;
+            return String(e.value ?? '');
+          }
+          return formatScalar(e.value, e.format, ctx);
+        }));
+      }
+      if (badCell) {
+        report({ severity: 'error', code: 'bad-value', slide, slot: name, message: `Table '${name}' on slide ${slide}: ${badCell}` });
+        continue;
+      }
       fillTable(loc.frame, loc.tbl, columnMap, rows);
     }
 

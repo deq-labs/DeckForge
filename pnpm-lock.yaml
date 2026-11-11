@@ -196,12 +196,16 @@ importers:
       commander:
         specifier: ^15.1.0
         version: 15.1.0
+    devDependencies:
+      exceljs:
+        specifier: ^4.4.0
+        version: 4.4.0
 
   packages/data-xlsx:
     dependencies:
-      csv-parse:
-        specifier: ^7.0.3
-        version: 7.0.3
+      '@deckforge/pptx-engine':
+        specifier: workspace:*
+        version: link:../pptx-engine
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
@@ -665,9 +669,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  csv-parse@7.0.3:
-    resolution: {integrity: sha512-YFd3QM/yo17vH91L1IOZuvl09zM0zEEtdfTcOCKWcMdM++MNaQSyp09slXyFCLaPXvHstQFx/xC8myiFHSMUvw==}
 
   data-view-buffer@1.0.2:
     resolution: {integrity: sha512-EmKO5V3OLXh1rtK2wgXRansaK1/mtVdTUEiEI0W8RkvgT05kfxaH29PliLnpLP73yYO6142Q72QNa8Wx/A5CqQ==}
@@ -2143,8 +2144,6 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-
-  csv-parse@7.0.3: {}
 
   data-view-buffer@1.0.2:
     dependencies:

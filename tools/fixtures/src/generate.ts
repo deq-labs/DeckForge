@@ -10,12 +10,16 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import PptxGenJS from 'pptxgenjs';
+import pptxgenModule from 'pptxgenjs';
+
+// pptxgenjs ships CommonJS-style types for its ESM entry: under nodenext TypeScript sees the
+// module namespace while Node loads the class itself. Bridge the two here.
+const PptxGenJS = pptxgenModule as unknown as typeof pptxgenModule.default;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = resolve(here, '../../../fixtures/templates');
 
-type Pres = InstanceType<typeof PptxGenJS>;
+type Pres = InstanceType<typeof pptxgenModule.default>;
 
 function newPres(title: string): Pres {
   const pres = new PptxGenJS();
@@ -67,8 +71,8 @@ function opsReview(): Pres {
         { text: 'Cause', options: header },
         { text: 'Minutes', options: { ...header, align: 'right' } },
       ],
-      ['Line 1', 'Changeover', { text: '120', options: { align: 'right' } }],
-      ['Line 2', 'Jam', { text: '45', options: { align: 'right' } }],
+      [{ text: 'Line 1' }, { text: 'Changeover' }, { text: '120', options: { align: 'right' } }],
+      [{ text: 'Line 2' }, { text: 'Jam' }, { text: '45', options: { align: 'right' } }],
     ],
     { x: 0.5, y: 1.1, w: 9, colW: [2, 5, 2], rowH: 0.4, fontSize: 14, border: { type: 'solid', pt: 1, color: 'BFBFBF' }, objectName: 'downtime' },
   );

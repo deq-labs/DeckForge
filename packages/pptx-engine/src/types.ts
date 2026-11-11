@@ -9,10 +9,13 @@ export interface ValueEntry {
   format?: string;
 }
 
+/** A table cell: a bare value, or a value with a format (see `ValueEntry.format`). */
+export type TableCell = Scalar | { value: Scalar; format?: string };
+
 export interface TableData {
   /** Header texts; matched to the template's header row case-insensitively. */
   columns: string[];
-  rows: Scalar[][];
+  rows: TableCell[][];
 }
 
 export interface ChartSeries {
@@ -55,7 +58,8 @@ export type IssueCode =
   | 'bad-value'
   | 'table-columns'
   | 'chart-series'
-  | 'unused-data';
+  | 'unused-data'
+  | 'data-layout';
 
 export interface Issue {
   severity: 'error' | 'warning';

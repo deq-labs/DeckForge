@@ -15,6 +15,7 @@ export type {
   OnMissing,
   Scalar,
   Slot,
+  TableCell,
   TableData,
   TableSlot,
   TextField,

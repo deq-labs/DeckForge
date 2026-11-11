@@ -178,17 +178,17 @@ Build the Lite track first, in phase order. The Services track starts as soon as
 
 #### L0 — Setup
 
-- [ ] Repo, strict TypeScript, lint boundaries, CI, CLAUDE.md, design log
-- [ ] Five fixture templates you design in PowerPoint (ops review, KPI scorecard, table-heavy, chart-heavy, per-item repeat)
+- [x] Repo, strict TypeScript, lint boundaries, CI, CLAUDE.md, design log
+- [ ] Five fixture templates you design in PowerPoint (ops review, KPI scorecard, table-heavy, chart-heavy, per-item repeat) — two synthetic stand-ins exist (`pnpm fixtures`); real PowerPoint-authored ones still needed
 - [ ] DEQ Labs LLC formed; Lemon Squeezy or Paddle account opened
 
 #### L1 — Engine core + CLI
 
-- [ ] Parse, slot discovery (including tags split across runs), text fill keeping formatting
-- [ ] Native bar and line charts, including the embedded workbook
-- [ ] Tables (fill, add/trim rows) — moved up from L2 (2026-11-11)
-- [ ] `data-xlsx` reads the documented layout; `deckforge init-data` writes a blank workbook from a template
-- [ ] `deckforge fill` works end to end; golden-file tests; output opens cleanly in PowerPoint and LibreOffice
+- [x] Parse, slot discovery (including tags split across runs), text fill keeping formatting
+- [x] Native bar and line charts, including the embedded workbook
+- [x] Tables (fill, add/trim rows) — moved up from L2 (2026-11-11)
+- [x] `data-xlsx` reads the documented layout; `deckforge init-data` writes a blank workbook from a template
+- [ ] `deckforge fill` works end to end; golden-file tests; output opens cleanly in PowerPoint and LibreOffice — done except: verify in real PowerPoint (Open XML SDK validation passes; LibreOffice runs in CI)
 
 #### L2 — Engine complete
 
